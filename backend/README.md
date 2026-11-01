@@ -45,13 +45,13 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 ## How a turn works
 
 ```python
-engine = Engine(load_valid_case(path))      # one per case, shared by every session
+engine = Engine(load_valid_case(path))  # one per case, shared by every session
 state = engine.new_game()
-state = engine.apply(state, TalkTo(suspect="S_RICHARD")).state   # opening lie on record
-allowed = engine.allowed_reveals(state, "S_RICHARD")              # what the model may be told
-result = engine.disclose(state, "S_RICHARD", model_reply.reveals) # validate what it said
-state = result.state                                              # accepted facts learned
-log_eval_failures(result.rejected)                                # unknown / guarded / not_allowed
+state = engine.apply(state, TalkTo(suspect="S_RICHARD")).state  # opening lie on record
+allowed = engine.allowed_reveals(state, "S_RICHARD")  # what the model may be told
+result = engine.disclose(state, "S_RICHARD", model_reply.reveals)  # validate what it said
+state = result.state  # accepted facts learned
+log_eval_failures(result.rejected)  # unknown / guarded / not_allowed
 ```
 
 Every call returns a new state; nothing changes in place. Store the log of actions and reveals, and `engine.replay(log)` rebuilds the game exactly.
