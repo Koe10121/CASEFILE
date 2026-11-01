@@ -1,0 +1,427 @@
+{
+  "case_id": "blackwood-001",
+  "suspects": [
+    {
+      "suspect": "S_VICTORIA",
+      "persona": {
+        "summary": "Precise, eager to help, over-apologetic; a year of terror has made her excellent at seeming fine.",
+        "voice": "Fills silences with logistics and exact times, then corrects herself ('21:05, sorry, five past nine'). Corporate phrases, a nervous laugh. When cornered: formal and procedural ('I'd have to check the logs'). Never raises her voice.",
+        "sample_lines": [
+          "Sorry, I keep thinking I should tell him the police are here.",
+          "I can pull his calendar for you, if that helps?"
+        ],
+        "default_demeanor": "helpful"
+      },
+      "opening_statement": {
+        "text": "After dinner I went to my room to finish Monday's slides. I didn't see or hear from Arthur after that. At five past ten I went down to the library for the San Francisco call.",
+        "claims": [
+          "LIE_VICTORIA_NO_CONTACT"
+        ]
+      },
+      "shares_freely": [
+        "F_ALL_GATHER",
+        "F_VICTORIA_SF_CALL",
+        "F_VICTORIA_SAW_BANK_CALL",
+        "F_BANK_CALL_2131",
+        "F_VICTORIA_RUNS_MEMOS",
+        "F_DINNER",
+        "F_TOAST_KESTREL",
+        "F_ARGUMENT",
+        "F_STUDY_SOUNDPROOF",
+        "F_VICTORIA_JOINED_ELEANOR",
+        "F_WILL_ON_DESK"
+      ],
+      "gated": [
+        {
+          "fact": "F_VICTORIA_ROOM_2050_2144",
+          "withheld_hint": "exactly when you left your room",
+          "reveal_when": {
+            "lie_caught": "LIE_VICTORIA_NO_CONTACT"
+          }
+        },
+        {
+          "fact": "F_ONLY_TWO_ADMINS",
+          "withheld_hint": "how many people can really change the house system",
+          "reveal_when": {
+            "lie_caught": "LIE_VICTORIA_ANYONE"
+          }
+        },
+        {
+          "fact": "F_VICTORIA_ACCUSED",
+          "withheld_hint": "what Arthur actually said to you in the study",
+          "reveal_when": {
+            "all": [
+              {
+                "lie_caught": "LIE_VICTORIA_ANYONE"
+              },
+              {
+                "evidence_shown": "E11"
+              }
+            ]
+          }
+        },
+        {
+          "fact": "F_VICTORIA_MOTHER",
+          "withheld_hint": "your mother, and what her care costs",
+          "reveal_when": {
+            "evidence_shown": "E11"
+          }
+        }
+      ],
+      "lies": [
+        {
+          "id": "LIE_VICTORIA_NO_CONTACT",
+          "claim": "I didn't see or hear from Arthur after dinner; I was in my room until the call.",
+          "hides": "G_01",
+          "why": "Admitting she was summoned puts her in the study at the time of death.",
+          "contradicted_by": [
+            "F_SUMMONS_2141",
+            "F_VSIPAD_APSTUDY_2144"
+          ],
+          "on_caught": {
+            "fallback_lie": "LIE_VICTORIA_LEFT_2150",
+            "reveal": []
+          }
+        },
+        {
+          "id": "LIE_VICTORIA_LEFT_2150",
+          "claim": "All right, he called me in. He shouted about the slides. I left at about ten to ten and he was alive.",
+          "hides": "G_01",
+          "why": "Moves her exit before the window figure and the routine.",
+          "contradicted_by": [
+            "F_LOCK_NO_OPENING_2144_2158",
+            "F_ROUTINE_CREATED_2158"
+          ],
+          "on_caught": {
+            "fallback_lie": "LIE_VICTORIA_ANYONE",
+            "reveal": []
+          }
+        },
+        {
+          "id": "LIE_VICTORIA_ANYONE",
+          "claim": "Lots of people can set up routines. Arthur gave half the house app access.",
+          "hides": "G_03",
+          "why": "Hides that only she could have built the routine.",
+          "contradicted_by": [
+            "F_ONLY_TWO_ADMINS",
+            "F_ROUTINE_CREATED_2158"
+          ],
+          "on_caught": {
+            "fallback_lie": null,
+            "reveal": [
+              "F_ONLY_TWO_ADMINS"
+            ]
+          }
+        }
+      ],
+      "breaking_point": {
+        "when": {
+          "all": [
+            {
+              "lie_caught": "LIE_VICTORIA_ANYONE"
+            },
+            {
+              "evidence_shown": "E11"
+            }
+          ]
+        },
+        "reveal": [
+          "F_VICTORIA_ACCUSED",
+          "F_VICTORIA_MOTHER"
+        ],
+        "demeanor": "broken",
+        "line_hint": "Admits the theft and why; insists 'He was alive when I left.' Never confesses to the killing in play."
+      }
+    },
+    {
+      "suspect": "S_RICHARD",
+      "persona": {
+        "summary": "Combative, proud, cornered by debt.",
+        "voice": "Blunt, clipped, sarcastic, money metaphors. Says 'Look' when pressed. Sneers at 'Arthur's toys'. Loud, then suddenly bored when caught.",
+        "sample_lines": [
+          "Look, everyone heard us. I'm not hiding it.",
+          "You want a motive? Get in the queue."
+        ],
+        "default_demeanor": "hostile"
+      },
+      "opening_statement": {
+        "text": "I was in the billiard room from the end of dinner until Thomas screamed, apart from a cigarette on the terrace.",
+        "claims": [
+          "LIE_RICHARD_BILLIARD"
+        ]
+      },
+      "shares_freely": [
+        "F_ALL_GATHER",
+        "F_ARGUMENT",
+        "F_TOAST_KESTREL",
+        "F_DINNER",
+        "F_RICHARD_TERRACE",
+        "F_RICHARD_SAW_LIGHTS",
+        "F_RICHARD_BILLIARD_2230_2245",
+        "F_RICHARD_999"
+      ],
+      "gated": [
+        {
+          "fact": "F_RICHARD_BILLIARD_2050_2136",
+          "withheld_hint": "exactly when you left the billiard room",
+          "reveal_when": {
+            "lie_caught": "LIE_RICHARD_BILLIARD"
+          }
+        },
+        {
+          "fact": "F_RICHARD_BILLIARD_2152_2215",
+          "withheld_hint": "when you got back to the billiard room",
+          "reveal_when": {
+            "lie_caught": "LIE_RICHARD_BILLIARD"
+          }
+        },
+        {
+          "fact": "F_RICHARD_DEBTS",
+          "withheld_hint": "your money troubles",
+          "reveal_when": {
+            "lie_caught": "LIE_RICHARD_NOTE"
+          }
+        },
+        {
+          "fact": "F_RICHARD_SAW_IPAD",
+          "withheld_hint": "something odd you noticed while waiting for the police",
+          "reveal_when": {
+            "lie_caught": "LIE_RICHARD_NOTE"
+          }
+        }
+      ],
+      "lies": [
+        {
+          "id": "LIE_RICHARD_BILLIARD",
+          "claim": "I was in the billiard room all evening, apart from a cigarette on the terrace.",
+          "hides": "F_RICHARD_OFFICE",
+          "why": "Being in Arthur's office looks like theft on the night he died.",
+          "contradicted_by": [
+            "F_RICHARD_OFFICE"
+          ],
+          "on_caught": {
+            "fallback_lie": "LIE_RICHARD_NOTE",
+            "reveal": []
+          }
+        },
+        {
+          "id": "LIE_RICHARD_NOTE",
+          "claim": "I went to the office to leave him a note about the deal, nothing more.",
+          "hides": "F_RICHARD_BOARD_PLAN",
+          "why": "He copied the term sheet to go over Arthur's head.",
+          "contradicted_by": [
+            "F_TERM_SHEET_COPIED"
+          ],
+          "on_caught": {
+            "fallback_lie": null,
+            "reveal": [
+              "F_RICHARD_BOARD_PLAN"
+            ]
+          }
+        }
+      ],
+      "breaking_point": {
+        "when": {
+          "lie_caught": "LIE_RICHARD_NOTE"
+        },
+        "reveal": [
+          "F_RICHARD_DEBTS",
+          "F_RICHARD_SAW_IPAD"
+        ],
+        "demeanor": "deflated"
+      }
+    },
+    {
+      "suspect": "S_ELEANOR",
+      "persona": {
+        "summary": "Composed, proud, privately humiliated.",
+        "voice": "Cold, exact diction, short sentences. Never fills a silence; answers questions with questions. Cracks into bitterness, never tears.",
+        "sample_lines": [
+          "Do you always ask widows that, Inspector?",
+          "He sighed. He always sighed at me."
+        ],
+        "default_demeanor": "cold"
+      },
+      "opening_statement": {
+        "text": "I didn't go into the study tonight. I only spoke to him through the intercom at about twenty-five past ten.",
+        "claims": [
+          "LIE_ELEANOR_NEVER_IN"
+        ]
+      },
+      "shares_freely": [
+        "F_ELEANOR_HEARD_VOICE",
+        "F_ARGUMENT",
+        "F_DINNER",
+        "F_TOAST_KESTREL",
+        "F_VICTORIA_RUNS_MEMOS",
+        "F_ARTHUR_PARANOID",
+        "F_ALL_GATHER",
+        "F_ELEANOR_DRAWING_2227_2245",
+        "F_VICTORIA_JOINED_ELEANOR",
+        "F_STUDY_SOUNDPROOF"
+      ],
+      "gated": [
+        {
+          "fact": "F_ELEANOR_DRAWING_2050_2116",
+          "withheld_hint": "when you left the drawing room",
+          "reveal_when": {
+            "lie_caught": "LIE_ELEANOR_NEVER_IN"
+          }
+        },
+        {
+          "fact": "F_ELEANOR_DRAWING_2119_2225",
+          "withheld_hint": "when you came back to the drawing room",
+          "reveal_when": {
+            "lie_caught": "LIE_ELEANOR_NEVER_IN"
+          }
+        },
+        {
+          "fact": "F_SAME_WORDS",
+          "withheld_hint": "exactly how his words sounded",
+          "reveal_when": {
+            "any": [
+              {
+                "fact_known": "F_THOMAS_HEARD_VOICE"
+              },
+              {
+                "evidence_shown": "E05"
+              }
+            ]
+          }
+        }
+      ],
+      "lies": [
+        {
+          "id": "LIE_ELEANOR_NEVER_IN",
+          "claim": "I didn't go into the study tonight.",
+          "hides": "F_ELEANOR_TOOK_WILL",
+          "why": "She took the new will.",
+          "contradicted_by": [
+            "F_LOCK_ELEANOR_IN_2116"
+          ],
+          "on_caught": {
+            "fallback_lie": "LIE_ELEANOR_TOOK_NOTHING",
+            "reveal": []
+          }
+        },
+        {
+          "id": "LIE_ELEANOR_TOOK_NOTHING",
+          "claim": "I went in to talk to him. He wasn't there, so I left. I took nothing.",
+          "hides": "F_ELEANOR_TOOK_WILL",
+          "why": "Hides the will.",
+          "contradicted_by": [
+            "F_WILL_BURNT"
+          ],
+          "on_caught": {
+            "fallback_lie": null,
+            "reveal": [
+              "F_ELEANOR_TOOK_WILL",
+              "F_ELEANOR_BURNT_WILL"
+            ]
+          }
+        }
+      ],
+      "breaking_point": {
+        "when": {
+          "lie_caught": "LIE_ELEANOR_TOOK_NOTHING"
+        },
+        "reveal": [
+          "F_ELEANOR_TOOK_WILL",
+          "F_ELEANOR_BURNT_WILL"
+        ],
+        "demeanor": "bitter"
+      }
+    },
+    {
+      "suspect": "S_THOMAS",
+      "persona": {
+        "summary": "Loyal, formal, ashamed: tonight he left his post for the first time in fourteen years.",
+        "voice": "'Sir' and 'madam'. Exact about times and clothes ('The hall clock said ten past'). Understatement; no gossip unless pressed. Quieter as pressure rises.",
+        "sample_lines": [
+          "He didn't say my name, Inspector. In fourteen years he always said my name.",
+          "Miss Shaw drives to Harrogate every Sunday. Her mother."
+        ],
+        "default_demeanor": "formal"
+      },
+      "opening_statement": {
+        "text": "I was in the pantry from dinner until I took Mr Blackwood his tea at a quarter to eleven, apart from asking him about it at a quarter past ten.",
+        "claims": [
+          "LIE_THOMAS_PANTRY"
+        ]
+      },
+      "shares_freely": [
+        "F_THOMAS_HEARD_VOICE",
+        "F_NOT_SAID_NAME",
+        "F_ARTHUR_HANDLES_AWARD",
+        "F_ARGUMENT",
+        "F_DINNER",
+        "F_TOAST_KESTREL",
+        "F_THOMAS_FOUND_BODY",
+        "F_ALL_GATHER",
+        "F_STUDY_SOUNDPROOF",
+        "F_VICTORIA_HAIR"
+      ],
+      "gated": [
+        {
+          "fact": "F_THOMAS_KITCHEN_2050_2150",
+          "withheld_hint": "exactly when you left the kitchen",
+          "reveal_when": {
+            "lie_caught": "LIE_THOMAS_PANTRY"
+          }
+        },
+        {
+          "fact": "F_THOMAS_KITCHEN_2206_2245",
+          "withheld_hint": "when you got back to the kitchen",
+          "reveal_when": {
+            "lie_caught": "LIE_THOMAS_PANTRY"
+          }
+        },
+        {
+          "fact": "F_FIGURE_HAIR_UP",
+          "withheld_hint": "one more detail about the figure",
+          "reveal_when": {
+            "all": [
+              {
+                "lie_caught": "LIE_THOMAS_PANTRY"
+              },
+              {
+                "evidence_shown": "E06"
+              },
+              {
+                "fact_known": "F_WINDOW_FIGURE_2155"
+              }
+            ]
+          }
+        }
+      ],
+      "lies": [
+        {
+          "id": "LIE_THOMAS_PANTRY",
+          "claim": "I was in the pantry the whole time.",
+          "hides": "F_THOMAS_DAUGHTER",
+          "why": "Leaving his post is a sacking offence; he went to phone his daughter in labour.",
+          "contradicted_by": [
+            "F_GATE_FOOTAGE_THOMAS"
+          ],
+          "on_caught": {
+            "fallback_lie": null,
+            "reveal": [
+              "F_THOMAS_DAUGHTER",
+              "F_THOMAS_SAW_FIGURE"
+            ]
+          }
+        }
+      ],
+      "breaking_point": {
+        "when": {
+          "lie_caught": "LIE_THOMAS_PANTRY"
+        },
+        "reveal": [
+          "F_THOMAS_DAUGHTER",
+          "F_THOMAS_SAW_FIGURE"
+        ],
+        "demeanor": "ashamed"
+      }
+    }
+  ]
+}

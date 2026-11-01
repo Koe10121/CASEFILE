@@ -1,0 +1,191 @@
+{
+  "case_id": "blackwood-001",
+  "culprit": "S_VICTORIA",
+  "motive": "MOT_HIDE_THEFT",
+  "method": "MTH_AWARD_STAGED",
+  "guarded_facts": [
+    {
+      "id": "G_01",
+      "statement": "You were in the study from 21:44 to 21:58. At about 21:52 you struck Arthur on the back of the head with his crystal award and killed him.",
+      "time": {
+        "from": "21:44",
+        "to": "21:58",
+        "precision": "exact"
+      },
+      "location": "LOC_STUDY",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "kind": "presence",
+      "leak_markers": [
+        {
+          "phrase": "I hit him"
+        },
+        {
+          "phrase": "I struck"
+        },
+        {
+          "phrase": "I killed"
+        },
+        {
+          "phrase": "until 21:58",
+          "unless_known": "F_LOCK_NO_OPENING_2144_2158"
+        }
+      ]
+    },
+    {
+      "id": "G_02",
+      "statement": "You wiped the award, put it back on the shelf, dragged Arthur into his chair and put his headset on him.",
+      "leak_markers": [
+        {
+          "phrase": "wiped"
+        },
+        {
+          "phrase": "dragged"
+        },
+        {
+          "phrase": "headset",
+          "unless_known": "F_THOMAS_FOUND_BODY"
+        }
+      ]
+    },
+    {
+      "id": "G_03",
+      "statement": "You uploaded your cloned clip dnd_reply.m4a and built the Quiet Hours routine so the house would answer for Arthur until 22:40, then deleted it at 22:52.",
+      "leak_markers": [
+        {
+          "phrase": "dnd_reply",
+          "unless_known": "F_AUTOREPLY_2215"
+        },
+        {
+          "phrase": "Quiet Hours",
+          "unless_known": "F_LOCK_PRIVACY_2159"
+        },
+        {
+          "phrase": "my clip"
+        },
+        {
+          "phrase": "I made the routine"
+        },
+        {
+          "phrase": "I deleted"
+        }
+      ]
+    },
+    {
+      "id": "G_04",
+      "statement": "For a year you have used a clone of Arthur's voice to move GBP 2.1M to Northlight Advisory, a company you control, to pay for your mother's care.",
+      "leak_markers": [
+        {
+          "phrase": "Northlight",
+          "unless_known": "F_VOICE_FRAUD"
+        },
+        {
+          "phrase": "clone of his voice",
+          "unless_known": "F_VOICE_CLIPS"
+        },
+        {
+          "phrase": "2.1",
+          "unless_known": "F_VOICE_FRAUD"
+        }
+      ]
+    }
+  ],
+  "key_evidence_groups": [
+    {
+      "label": "The voice was a recording",
+      "items": [
+        "E05"
+      ]
+    },
+    {
+      "label": "Victoria in the study and behind the routine",
+      "items": [
+        "E10",
+        "E04"
+      ]
+    },
+    {
+      "label": "The weapon",
+      "items": [
+        "E02"
+      ]
+    },
+    {
+      "label": "The motive",
+      "items": [
+        "E03",
+        "E11"
+      ]
+    }
+  ],
+  "solution_chain": [
+    {
+      "step": 1,
+      "learn": [
+        "F_THOMAS_HEARD_VOICE",
+        "F_ELEANOR_HEARD_VOICE",
+        "F_NOT_SAID_NAME"
+      ],
+      "via": "talk:S_THOMAS,S_ELEANOR",
+      "hint": "People rarely say the same thing the same way twice."
+    },
+    {
+      "step": 2,
+      "learn": [
+        "F_AUTOREPLY_2215",
+        "F_AUTOREPLY_2225",
+        "F_SUMMONS_2141"
+      ],
+      "via": "E05",
+      "hint": "The house remembers every word said through it."
+    },
+    {
+      "step": 3,
+      "breaks": "LIE_VICTORIA_NO_CONTACT",
+      "via": "show:E05->S_VICTORIA",
+      "hint": "Someone was summoned. Ask them why they didn't mention it."
+    },
+    {
+      "step": 4,
+      "breaks": "LIE_VICTORIA_LEFT_2150",
+      "via": "show:E04->S_VICTORIA",
+      "hint": "Doors here keep better time than people."
+    },
+    {
+      "step": 5,
+      "breaks": "LIE_VICTORIA_ANYONE",
+      "via": "show:E10->S_VICTORIA",
+      "hint": "Somebody had to tell the house what to say."
+    },
+    {
+      "step": 6,
+      "learn": [
+        "F_AWARD_WIPED",
+        "F_ARTHUR_HANDLES_AWARD",
+        "F_BODY_MOVED"
+      ],
+      "via": "E02,E01,talk:S_THOMAS",
+      "hint": "Some things are too clean."
+    },
+    {
+      "step": 7,
+      "learn": [
+        "F_VOICE_FRAUD",
+        "F_NORTHLIGHT_CARD",
+        "F_VOICE_CLIPS"
+      ],
+      "via": "E03,E11",
+      "hint": "Arthur asked himself a question on paper. Answer it."
+    }
+  ],
+  "epilogue": "Victoria confesses in the library, very quietly. It started with nine thousand pounds for one month of her mother's care, and a clip of Arthur saying 'yes, I authorise it'. Then it was every month. When the bank rang at 21:31 she watched his screening feed light up and knew. He told her he would ruin her in the morning, and turned his back. She does not remember picking up the award. She remembers the weight of him as she dragged him to the chair, and how she chose the clip, because she had made it weeks ago for the bank's callbacks. At 21:58, while she walked out of the study, Thomas's grandson was born at the bottom of the drive. Her mother will not be told. Her mother would not remember.",
+  "scoring": {
+    "culprit": 40,
+    "motive": 20,
+    "method": 20,
+    "evidence": 20,
+    "motive_method_require_culprit": true,
+    "points_per_group": 5
+  }
+}
