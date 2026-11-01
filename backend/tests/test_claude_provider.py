@@ -13,9 +13,9 @@ import httpx2
 import pytest
 from anthropic.types.beta import BetaMessage
 
-from casefile.ai.claude import FIRST_MEETING_CUE, ClaudeNpc
+from casefile.ai.claude import ClaudeNpc
 from casefile.ai.contract import Exchange, ProviderError
-from casefile.ai.prompt import detective_turn
+from casefile.ai.prompt import FIRST_MEETING_CUE, detective_turn
 from casefile.case import CaseBundle
 from casefile.case.ids import CharacterId
 from casefile.engine import Engine, TalkTo

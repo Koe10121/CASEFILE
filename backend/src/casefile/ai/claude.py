@@ -5,26 +5,23 @@ One request per reply. The reply's shape is guaranteed by structured outputs
 longer accept (D35). The briefing is the only game data that leaves the process.
 """
 
-import json
 import time
 from collections.abc import Sequence
 
 import anthropic
 from anthropic.types.beta import BetaMessage, BetaMessageParam, BetaTextBlockParam
-from pydantic import ValidationError
 
 from casefile.ai.contract import Exchange, NpcReply, NpcTurn, ProviderError, Usage
 from casefile.ai.prompt import (
     REPLY_SCHEMA,
-    detective_turn,
+    conversation,
+    parse_reply,
     stable_instructions,
-    suspect_turn,
     turn_state,
 )
 from casefile.engine.briefing import SuspectBriefing
 from casefile.settings import Settings
 
-FIRST_MEETING_CUE = "(The detective sits down across from you and waits.)"
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 
@@ -43,7 +40,7 @@ class ClaudeNpc:
         started = time.monotonic()
         try:
             message = self._client.beta.messages.create(
-                model=self._settings.model,
+                model=self._settings.claude_model,
                 max_tokens=self._settings.max_output_tokens,
                 system=self._system(briefing),
                 messages=self._messages(history, player_text),
@@ -78,16 +75,9 @@ class ClaudeNpc:
 
     @staticmethod
     def _messages(history: Sequence[Exchange], player_text: str) -> list[BetaMessageParam]:
-        messages: list[BetaMessageParam] = []
-        for ex in history:
-            messages.append(
-                {"role": "user", "content": detective_turn(ex.detective or FIRST_MEETING_CUE)}
-            )
-            messages.append({"role": "assistant", "content": suspect_turn(ex.suspect, ex.demeanor)})
-        messages.append(
-            {"role": "user", "content": detective_turn(player_text or FIRST_MEETING_CUE)}
-        )
-        return messages
+        return [
+            {"role": role, "content": text} for role, text in conversation(history, player_text)
+        ]
 
     # ------------------------------------------------------------ response
 
@@ -100,10 +90,7 @@ class ClaudeNpc:
         text = next((b.text for b in message.content if b.type == "text"), None)
         if text is None:
             raise ProviderError("malformed", "no text block in the reply")
-        try:
-            return NpcReply.model_validate(json.loads(text))
-        except (json.JSONDecodeError, ValidationError) as exc:
-            raise ProviderError("malformed", str(exc).splitlines()[0]) from exc
+        return parse_reply(text)
 
     @staticmethod
     def _usage(message: BetaMessage, latency_ms: int) -> Usage:

@@ -6,13 +6,18 @@ The game engine and the AI layer (later, the API). Python 3.12+, managed with [u
 
 ```bash
 cd backend
-uv run casefile            # CASE #001 in the terminal, mock AI, no API key needed
-uv run casefile --claude   # Claude plays the suspects (needs an API key, see below)
+uv run casefile               # CASE #001 in the terminal, scripted suspects, no setup
+uv run casefile --ai ollama   # a local model plays the suspects: free
+uv run casefile --ai claude   # Claude plays the suspects: pay as you go
 ```
 
-For `--claude`, copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY` (from console.anthropic.com; usage is pay as you go). `.env` is git-ignored. Each session stops after `CASEFILE_SESSION_TOKEN_BUDGET` tokens, 400,000 by default.
-
 Type `help` for commands. Try `talk S_RICHARD`, `ask where were you tonight?`, `search LOC_OFFICE`, `show E07`.
+
+**Free real AI (Ollama).** Install [Ollama](https://ollama.com), run `ollama pull llama3.1:8b`, and keep the Ollama app running. Any model with structured-output support works; set `CASEFILE_OLLAMA_MODEL` to try another. An 8B model needs about 8 GB of free memory and is slower and less consistent than Claude.
+
+**Claude.** Copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY` (from console.anthropic.com). `.env` is git-ignored.
+
+Either way, a session stops after `CASEFILE_SESSION_TOKEN_BUDGET` model tokens, 400,000 by default. Every setting is listed in `.env.example`; `CASEFILE_AI=ollama` makes the local model the default.
 
 ## Run the checks
 
@@ -48,12 +53,13 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 | `src/casefile/engine/events.py` | What an action caused (fact learned, lie caught, …), for the UI and notebook |
 | `src/casefile/engine/scoring.py` | `Accusation` and deterministic `score` |
 | `src/casefile/engine/briefing.py` | `build_briefing`: the per-turn `SuspectBriefing`, the only thing a model sees |
-| `src/casefile/settings.py` | `Settings`: model, effort, token budget and the API key, from the environment or `.env` |
+| `src/casefile/settings.py` | `Settings`: which AI, models, token budget and the API key, from the environment or `.env` |
 | `src/casefile/ai/contract.py` | `NpcReply` (the reply contract), `Exchange`, `Usage`, `NpcTurn`, `ProviderError` |
 | `src/casefile/ai/provider.py` | `NpcProvider`, the protocol every provider implements |
 | `src/casefile/ai/mock.py` | `MockNpc`: deterministic, no API spend |
 | `src/casefile/ai/prompt.py` | The suspect prompt: cached instructions, this turn's briefing, the reply schema |
 | `src/casefile/ai/claude.py` | `ClaudeNpc`: the Claude provider (structured output, prompt caching, usage) |
+| `src/casefile/ai/ollama.py` | `OllamaNpc`: the free local-model provider, same prompt and contract |
 | `src/casefile/ai/guard.py` | `find_leaks`: leak markers on the culprit's dialogue |
 | `src/casefile/session.py` | `GameSession`: one game, wiring the engine, a provider and the transcript |
 | `src/casefile/cli.py` | The terminal game (`uv run casefile`) |
@@ -64,6 +70,7 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 | `tests/test_engine.py` | The walkthrough scores 100, the engine reaches exactly what the validator proved, bad reveals are rejected, replay is deterministic |
 | `tests/test_richard_slice.py` | Richard's full lie ladder end to end; briefings hold nothing a suspect may not say; a misbehaving model can't change the truth; leak guard |
 | `tests/test_claude_provider.py` | The Claude provider against a fake client: request shape, caching, escaping, gating, every failure path |
+| `tests/test_ollama_provider.py` | The Ollama provider against a fake server: request, gating, escaping, failures |
 | `tests/test_cli.py` | The terminal game wins CASE #001 in mock mode |
 | `tests/test_scoring.py` | Scoring cases, including the wrong culprit and two items from one group |
 

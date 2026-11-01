@@ -1,7 +1,8 @@
 """A terminal front end for playing a case.
 
-    uv run casefile                      # CASE #001 with mock suspects: no API key, no spend
-    uv run casefile --claude             # Claude plays the suspects (needs ANTHROPIC_API_KEY)
+    uv run casefile                      # CASE #001 with scripted suspects: no setup
+    uv run casefile --ai ollama          # a local model plays them: free, needs Ollama
+    uv run casefile --ai claude          # Claude plays them: needs ANTHROPIC_API_KEY
     uv run casefile path/to/case-folder
 
 Type ``help`` for commands. This is a developer tool for exercising the engine end to
@@ -12,13 +13,14 @@ import argparse
 import sys
 from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import TextIO
+from typing import TextIO, get_args
 
 from pydantic import ValidationError
 
 from casefile.ai.claude import ClaudeNpc
 from casefile.ai.contract import ProviderError
 from casefile.ai.mock import MockNpc
+from casefile.ai.ollama import OllamaNpc
 from casefile.ai.provider import NpcProvider
 from casefile.case.ids import CharacterId, EvidenceId, LocationId
 from casefile.case.validation import load_valid_case
@@ -34,7 +36,7 @@ from casefile.engine.events import (
 )
 from casefile.engine.scoring import Accusation
 from casefile.session import GameSession
-from casefile.settings import Settings
+from casefile.settings import Ai, Settings
 
 DEFAULT_CASE = Path(__file__).resolve().parents[3] / "cases" / "blackwood_manor"
 
@@ -170,21 +172,32 @@ def _first_line(exc: Exception) -> str:
 
 
 def main(argv: list[str] | None = None) -> None:
+    settings = Settings()
     parser = argparse.ArgumentParser(prog="casefile", description="Play a CASEFILE case.")
     parser.add_argument("case", nargs="?", type=Path, default=DEFAULT_CASE)
-    parser.add_argument("--claude", action="store_true", help="Claude plays the suspects")
+    parser.add_argument(
+        "--ai",
+        choices=get_args(Ai),
+        default=settings.ai,
+        help="who plays the suspects (default: %(default)s)",
+    )
     args = parser.parse_args(argv)
+    if args.ai == "claude" and settings.anthropic_api_key is None:
+        parser.error("--ai claude needs ANTHROPIC_API_KEY (see backend/.env.example)")
     engine = Engine(load_valid_case(args.case))
-    provider: NpcProvider
-    budget: int | None = None
-    if args.claude:
-        settings = Settings()
-        if settings.anthropic_api_key is None:
-            parser.error("--claude needs ANTHROPIC_API_KEY (see backend/.env.example)")
-        provider, budget = ClaudeNpc(settings), settings.session_token_budget
-    else:
-        provider = MockNpc()
-    Cli(GameSession(engine, provider, token_budget=budget), sys.stdout).run(_prompted_lines())
+    session = GameSession(engine, *_provider(args.ai, settings))
+    Cli(session, sys.stdout).run(_prompted_lines())
+
+
+def _provider(ai: Ai, settings: Settings) -> tuple[NpcProvider, int | None]:
+    """The provider and its session token budget. The mock is free, so it has none."""
+    match ai:
+        case "mock":
+            return MockNpc(), None
+        case "ollama":
+            return OllamaNpc(settings), settings.session_token_budget
+        case "claude":
+            return ClaudeNpc(settings), settings.session_token_budget
 
 
 def _prompted_lines() -> Iterable[str]:
