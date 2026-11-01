@@ -51,5 +51,5 @@ def test_claude_mode_needs_a_key(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.chdir(tmp_path)  # no backend/.env to pick up
     with pytest.raises(SystemExit) as excinfo:
-        main(["--claude"])
+        main(["--ai", "claude"])
     assert excinfo.value.code == 2

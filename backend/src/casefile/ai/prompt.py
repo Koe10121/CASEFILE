@@ -12,10 +12,18 @@ escaped, so they can never pose as instructions (injection defence layer 2).
 
 import html
 import json
+from collections.abc import Sequence
+from typing import Literal
 
+from pydantic import ValidationError
+
+from casefile.ai.contract import Exchange, NpcReply, ProviderError
 from casefile.engine.briefing import SuspectBriefing
 
 MAX_DIALOGUE_WORDS = 120
+FIRST_MEETING_CUE = "(The detective sits down across from you and waits.)"
+
+Role = Literal["user", "assistant"]
 
 REPLY_SCHEMA: dict[str, object] = {
     "type": "object",
@@ -120,3 +128,24 @@ def detective_turn(text: str) -> str:
 def suspect_turn(dialogue: str, demeanor: str) -> str:
     """Re-encode a past reply in the output format, for the conversation history."""
     return json.dumps({"reveals": [], "demeanor": demeanor, "dialogue": dialogue})
+
+
+def conversation(history: Sequence[Exchange], player_text: str) -> list[tuple[Role, str]]:
+    """The interview so far plus the new question, as alternating user/assistant turns.
+
+    The opening statement has no question before it, so it gets a stage cue instead.
+    """
+    turns: list[tuple[Role, str]] = []
+    for ex in history:
+        turns.append(("user", detective_turn(ex.detective or FIRST_MEETING_CUE)))
+        turns.append(("assistant", suspect_turn(ex.suspect, ex.demeanor)))
+    turns.append(("user", detective_turn(player_text)))
+    return turns
+
+
+def parse_reply(text: str) -> NpcReply:
+    """Check a model's JSON against the reply contract. Raises ``ProviderError``."""
+    try:
+        return NpcReply.model_validate(json.loads(text))
+    except (json.JSONDecodeError, ValidationError) as exc:
+        raise ProviderError("malformed", str(exc).splitlines()[0]) from exc
