@@ -13,6 +13,7 @@ dependencies = [
 
 [project.scripts]
 casefile = "casefile.cli:main"
+casefile-eval = "casefile.evals.runner:main"
 
 [dependency-groups]
 dev = [

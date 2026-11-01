@@ -17,11 +17,8 @@ from typing import TextIO, get_args
 
 from pydantic import ValidationError
 
-from casefile.ai.claude import ClaudeNpc
 from casefile.ai.contract import ProviderError
-from casefile.ai.mock import MockNpc
-from casefile.ai.ollama import OllamaNpc
-from casefile.ai.provider import NpcProvider
+from casefile.ai.factory import make_provider
 from casefile.case.ids import CharacterId, EvidenceId, LocationId
 from casefile.case.validation import load_valid_case
 from casefile.engine.engine import Engine, IllegalActionError
@@ -185,19 +182,8 @@ def main(argv: list[str] | None = None) -> None:
     if args.ai == "claude" and settings.anthropic_api_key is None:
         parser.error("--ai claude needs ANTHROPIC_API_KEY (see backend/.env.example)")
     engine = Engine(load_valid_case(args.case))
-    session = GameSession(engine, *_provider(args.ai, settings))
+    session = GameSession(engine, *make_provider(args.ai, settings))
     Cli(session, sys.stdout).run(_prompted_lines())
-
-
-def _provider(ai: Ai, settings: Settings) -> tuple[NpcProvider, int | None]:
-    """The provider and its session token budget. The mock is free, so it has none."""
-    match ai:
-        case "mock":
-            return MockNpc(), None
-        case "ollama":
-            return OllamaNpc(settings), settings.session_token_budget
-        case "claude":
-            return ClaudeNpc(settings), settings.session_token_budget
 
 
 def _prompted_lines() -> Iterable[str]:

@@ -19,6 +19,15 @@ Type `help` for commands. Try `talk S_RICHARD`, `ask where were you tonight?`, `
 
 Either way, a session stops after `CASEFILE_SESSION_TOKEN_BUDGET` model tokens, 400,000 by default. Every setting is listed in `.env.example`; `CASEFILE_AI=ollama` makes the local model the default.
 
+## Score a model (eval harness)
+
+```bash
+uv run casefile-eval --ai ollama --model gemma3:12b   # free, local
+uv run casefile-eval --ai claude --repeat 1           # costs a few cents
+```
+
+Plays the scripted interviews in `evals/blackwood_manor.json` (each one 3 times by default) and checks every suspect line: broken lies, invented times, clue facts not declared, jailbreaks that worked, culprit leaks, bad fact IDs, parroted sample lines, latency and tokens. It prints a summary table and writes the full transcript, with each flag marked, to `eval-results/` (git-ignored). The checks are text heuristics, so read the flagged lines in the transcript before trusting a number.
+
 ## Run the checks
 
 ```bash
@@ -62,6 +71,9 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 | `src/casefile/ai/ollama.py` | `OllamaNpc`: the free local-model provider, same prompt and contract |
 | `src/casefile/ai/guard.py` | `find_leaks`: leak markers on the culprit's dialogue |
 | `src/casefile/session.py` | `GameSession`: one game, wiring the engine, a provider and the transcript |
+| `src/casefile/ai/factory.py` | `make_provider`: the provider a setting names |
+| `src/casefile/evals/` | The eval harness: scenario models, the per-line checks, the runner (`uv run casefile-eval`) |
+| `evals/blackwood_manor.json` | Eval scenarios for CASE #001 (author-only: they name what each lie hides) |
 | `src/casefile/cli.py` | The terminal game (`uv run casefile`) |
 | `tests/test_blackwood_loads.py` | The real CASE #001 loads, round-trips losslessly and is immutable |
 | `tests/test_schema_rejects.py` | One test per schema rule, each breaking exactly one thing in the real case |
@@ -71,6 +83,7 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 | `tests/test_richard_slice.py` | Richard's full lie ladder end to end; briefings hold nothing a suspect may not say; a misbehaving model can't change the truth; leak guard |
 | `tests/test_claude_provider.py` | The Claude provider against a fake client: request shape, caching, escaping, gating, every failure path |
 | `tests/test_ollama_provider.py` | The Ollama provider against a fake server: request, gating, escaping, failures |
+| `tests/test_evals.py` | The eval checks, the scenario file against the case, a clean mock baseline, and a bad reply tripping every check |
 | `tests/test_cli.py` | The terminal game wins CASE #001 in mock mode |
 | `tests/test_scoring.py` | Scoring cases, including the wrong culprit and two items from one group |
 
