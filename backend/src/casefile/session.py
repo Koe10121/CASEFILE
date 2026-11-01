@@ -10,9 +10,9 @@ the state. The transcript is kept for display and for the model's context, but i
 never trusted as a source of facts (D14).
 """
 
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 
-from casefile.ai.contract import Exchange
+from casefile.ai.contract import Exchange, Usage
 from casefile.ai.guard import find_leaks
 from casefile.ai.provider import NpcProvider
 from casefile.case.ids import CharacterId, EvidenceId, FactId, LocationId
@@ -49,12 +49,20 @@ class Reply:
     leaks: tuple[str, ...]
     """Leak-marker phrases the provider's dialogue contained (it was replaced)."""
     events: tuple[Event, ...]
+    usage: Usage
+
+
+class BudgetExhaustedError(IllegalActionError):
+    """The session has spent its model tokens. Injection defence layer 6, and a cost cap."""
 
 
 @dataclass
 class GameSession:
     engine: Engine
     provider: NpcProvider
+    token_budget: int | None = None
+    """Model tokens (input + output) this session may spend. ``None``: no cap (mock mode)."""
+    tokens_used: int = field(default=0, init=False)
     state: GameState = field(init=False)
     log: list[LogEntry] = field(default_factory=list, init=False)
     transcripts: dict[CharacterId, list[Exchange]] = field(default_factory=dict, init=False)
@@ -70,10 +78,16 @@ class GameSession:
         first_meeting = suspect not in self.state.talked_to
         outcome = self._apply(TalkTo(suspect=suspect))
         self.current_suspect = suspect
+        briefing = build_briefing(self.engine, self.state, suspect)
         if not first_meeting:
-            return Reply("", self._demeanor(suspect), (), (), (), outcome.events)
-        reply = self._ask(suspect, "", first_meeting=True)
-        return replace(reply, events=outcome.events + reply.events)
+            return Reply("", briefing.demeanor, (), (), (), outcome.events, Usage())
+        # The opening statement is authored, not generated: it must put the suspect's
+        # first lie on record word for word (D08), and it costs no model call.
+        opening = self.engine.index.briefings[suspect].opening_statement.text
+        self.transcripts.setdefault(suspect, []).append(
+            Exchange(detective="", suspect=opening, demeanor=briefing.demeanor)
+        )
+        return Reply(opening, briefing.demeanor, (), (), (), outcome.events, Usage())
 
     def ask(self, text: str) -> Reply:
         if self.current_suspect is None:
@@ -82,7 +96,9 @@ class GameSession:
             raise IllegalActionError("say something")
         if len(text) > MAX_PLAYER_CHARS:
             raise IllegalActionError(f"keep it under {MAX_PLAYER_CHARS} characters")
-        return self._ask(self.current_suspect, text, first_meeting=False)
+        if self.token_budget is not None and self.tokens_used >= self.token_budget:
+            raise BudgetExhaustedError("this session has used its model token budget")
+        return self._ask(self.current_suspect, text)
 
     def search(self, location: LocationId) -> Outcome:
         return self._apply(SearchLocation(location=location))
@@ -103,13 +119,12 @@ class GameSession:
         self.log.append(action)
         return outcome
 
-    def _demeanor(self, suspect: CharacterId) -> str:
-        return build_briefing(self.engine, self.state, suspect, first_meeting=False).demeanor
-
-    def _ask(self, suspect: CharacterId, text: str, *, first_meeting: bool) -> Reply:
-        briefing = build_briefing(self.engine, self.state, suspect, first_meeting=first_meeting)
+    def _ask(self, suspect: CharacterId, text: str) -> Reply:
+        briefing = build_briefing(self.engine, self.state, suspect)
         history = self.transcripts.setdefault(suspect, [])
-        npc = self.provider.respond(briefing, tuple(history), text)
+        turn = self.provider.respond(briefing, tuple(history), text)  # may raise ProviderError
+        self.tokens_used += turn.usage.total_tokens
+        npc = turn.reply
 
         disclosure = self.engine.disclose(self.state, suspect, npc.reveals)
         self.state = disclosure.state
@@ -122,7 +137,7 @@ class GameSession:
             if leaks:
                 dialogue = LEAK_FALLBACK
 
-        history.append(Exchange(detective=text, suspect=dialogue))
+        history.append(Exchange(detective=text, suspect=dialogue, demeanor=npc.demeanor))
         return Reply(
             dialogue=dialogue,
             demeanor=npc.demeanor,
@@ -130,4 +145,5 @@ class GameSession:
             rejected=disclosure.rejected,
             leaks=leaks,
             events=disclosure.events,
+            usage=turn.usage,
         )

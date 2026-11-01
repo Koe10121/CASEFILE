@@ -5,7 +5,9 @@ description = "Backend engine for CASEFILE, an AI detective game whose truth is 
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "anthropic>=1,<2",
     "pydantic>=2.11,<3",
+    "pydantic-settings>=2.6,<3",
 ]
 
 [project.scripts]
