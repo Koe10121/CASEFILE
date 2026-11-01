@@ -4,13 +4,19 @@ from collections.abc import Sequence
 
 import pytest
 
-from casefile.ai.contract import Exchange, NpcReply, NpcTurn, Usage
+from casefile.ai.contract import Exchange, NpcReply, NpcTurn, ProviderError, Usage
 from casefile.case import CaseBundle
 from casefile.case.ids import CharacterId, FactId
 from casefile.engine import Engine
 from casefile.engine.briefing import SuspectBriefing
 from casefile.evals.checks import forbidden, invented_times, lie_breaks, parroted
-from casefile.evals.runner import DEFAULT_SUITE, run_scenario, run_suite, summarise
+from casefile.evals.runner import (
+    DEFAULT_SUITE,
+    SetupError,
+    run_scenario,
+    run_suite,
+    summarise,
+)
 from casefile.evals.scenarios import Ask, Scenario, Talk, load_suite
 from casefile.settings import Settings
 
@@ -115,3 +121,18 @@ def test_every_failure_is_flagged(blackwood: CaseBundle, monkeypatch: pytest.Mon
         "missed clue",
     }
     assert turn.accepted == ()
+
+
+class DownNpc:
+    def respond(
+        self, briefing: SuspectBriefing, history: Sequence[Exchange], player_text: str
+    ) -> NpcTurn:
+        raise ProviderError("api", "HTTP 404: model 'gemma3:12b' not found")
+
+
+def test_a_dead_provider_stops_the_run_with_its_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "casefile.evals.runner.make_provider", lambda ai, settings: (DownNpc(), None)
+    )
+    with pytest.raises(SetupError, match="not found"):
+        run_suite(load_suite(DEFAULT_SUITE), "ollama", Settings(), repeat=3)
