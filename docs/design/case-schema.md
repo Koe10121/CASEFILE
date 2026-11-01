@@ -113,15 +113,32 @@ The Pydantic models in `backend/src/casefile/case/` enforce every rule that need
 
 ## Validator rules
 
-| Check | Rule |
+`backend/src/casefile/case/validation.py` runs every rule and reports all problems at once. The engine calls `load_valid_case` at startup, so a case with any error never reaches play (D22). The rule name is what appears in the report.
+
+| Rule | Check | Severity |
+| --- | --- | --- |
+| `references` | Every ID resolves, including every ID inside a condition | error |
+| `cast` | Every suspect has exactly one briefing, the accusation form lists exactly the suspects, and every character is in `world.present` | error |
+| `answer_key` | The right culprit, motive and method are options on the form, and `max_evidence` allows full evidence marks | error |
+| `guard_isolation` | Only the culprit's lies hide a `G_` fact. Typed IDs already stop a `G_` ID appearing anywhere else | error |
+| `catchable_lies` | Every lie has a contradicting fact that evidence proves and that is not approximately timed | error |
+| `on_record` | Every lie is in its own suspect's opening statement or on a fallback ladder from it, and no ladder loops | error |
+| `solvability` | The reachability fixpoint catches every lie, reaches every solution step, and finds an item from every key evidence group | error |
+| `dead_weight` | Every fact and evidence item is reachable | warning |
+| `physical` | No one is in two places at overlapping times (guarded facts included) | error |
+| `time_window` | Timed facts fall within the crime window | error |
+| `coverage` | Each briefing covers the window with no gap over 15 minutes | error |
+| `boundary_leak` | A freely shared whereabouts fact may not border an interval the suspect lies about | error |
+
+### How solvability is computed
+
+`reachability.py` starts from an empty game and applies every action a player could take, in rounds, until a round adds nothing. Each round reads only the previous round's state, so the round in which something first appears is its unlock depth. The search uses the same rule functions as the engine (`rules.py`) and the same condition evaluator (`conditions.holds`), so the proof is about the real game (D23).
+
+| Assumption | Why it is safe |
 | --- | --- |
-| Referential integrity | Every ID resolves |
-| Guard isolation | `G_` IDs appear only in `solution.json` and the culprit's lies' `hides` |
-| Catchable lies | Every lie has a contradicting fact that evidence establishes |
-| On record | Every lie is in an opening statement or a fallback chain from one |
-| Solvability | Fixpoint over player actions reaches every lie, solution step and key evidence group |
-| Dead weight | Every fact and evidence item is reachable |
-| Physical consistency | No one is in two places at overlapping times |
-| Time window | Timed facts fall within the crime window |
-| Whereabouts coverage | Each briefing covers the window with no gap over 15 minutes |
-| Boundary leak | A freely shared whereabouts fact may not border an interval the suspect lies about |
+| The player can talk to every suspect from the start | True in play |
+| The player can show any item they hold to any suspect | True in play |
+| Every open location gets searched | Searching costs nothing but time |
+| Conditions only grow true | No negation in conditions (D05), so the fixpoint is exact and always terminates |
+
+CASE #001 reaches everything in 6 rounds. Victoria's final lie falls in round 5 and her breaking point in round 6.
