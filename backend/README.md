@@ -30,10 +30,31 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 | `src/casefile/case/rules.py` | Game rules shared by the validator and the engine |
 | `src/casefile/case/reachability.py` | The solvability fixpoint: everything a player could ever reach |
 | `src/casefile/case/validation.py` | `validate_case` (every cross-file rule) and `load_valid_case` (what the engine calls) |
+| `src/casefile/engine/state.py` | `GameState`: an immutable record of what the player has done and learned |
+| `src/casefile/engine/actions.py` | Player actions (`TalkTo`, `SearchLocation`, `ShowEvidence`, `Accuse`) and `NpcReveal`: together, one game-log entry |
+| `src/casefile/engine/engine.py` | `Engine`: `new_game`, `apply`, `allowed_reveals`, `disclose` (the `reveal_fact` check) and `replay` |
+| `src/casefile/engine/events.py` | What an action caused (fact learned, lie caught, …), for the UI and notebook |
+| `src/casefile/engine/scoring.py` | `Accusation` and deterministic `score` |
 | `tests/test_blackwood_loads.py` | The real CASE #001 loads, round-trips losslessly and is immutable |
 | `tests/test_schema_rejects.py` | One test per schema rule, each breaking exactly one thing in the real case |
 | `tests/test_conditions.py` | Condition evaluation on a hand-built state |
 | `tests/test_case_validator.py` | The real case is valid and fully reachable; 17 broken copies each trip the right rule |
+| `tests/test_engine.py` | The walkthrough scores 100, the engine reaches exactly what the validator proved, bad reveals are rejected, replay is deterministic |
+| `tests/test_scoring.py` | Scoring cases, including the wrong culprit and two items from one group |
+
+## How a turn works
+
+```python
+engine = Engine(load_valid_case(path))      # one per case, shared by every session
+state = engine.new_game()
+state = engine.apply(state, TalkTo(suspect="S_RICHARD")).state   # opening lie on record
+allowed = engine.allowed_reveals(state, "S_RICHARD")              # what the model may be told
+result = engine.disclose(state, "S_RICHARD", model_reply.reveals) # validate what it said
+state = result.state                                              # accepted facts learned
+log_eval_failures(result.rejected)                                # unknown / guarded / not_allowed
+```
+
+Every call returns a new state; nothing changes in place. Store the log of actions and reveals, and `engine.replay(log)` rebuilds the game exactly.
 
 ## What the models check, and what they don't
 
