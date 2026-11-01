@@ -36,20 +36,20 @@ class ScoreBreakdown:
 def score(accusation: Accusation, solution: Solution) -> ScoreBreakdown:
     """Score an accusation that the engine has already checked is well-formed.
 
-    Culprit, motive and method are all-or-nothing. Motive and method count only with the
-    right culprit when the case says so. Evidence earns ``points_per_group`` for each key
-    group that at least one cited item belongs to, so citing two items from one group
-    earns nothing extra.
+    Naming the wrong culprit scores 0: the case is unsolved, whatever else is right (D29).
+    With the right culprit, motive and method are all-or-nothing, and evidence earns
+    ``points_per_group`` for each key group at least one cited item belongs to, so two
+    items from one group earn nothing extra.
     """
     rules = solution.scoring
-    right_culprit = accusation.culprit == solution.culprit
-    counts_rest = right_culprit or not rules.motive_method_require_culprit
     cited = set(accusation.evidence)
     covered = tuple(g.label for g in solution.key_evidence_groups if cited.intersection(g.items))
+    if accusation.culprit != solution.culprit:
+        return ScoreBreakdown(culprit=0, motive=0, method=0, evidence=0, groups_covered=covered)
     return ScoreBreakdown(
-        culprit=rules.culprit if right_culprit else 0,
-        motive=rules.motive if counts_rest and accusation.motive == solution.motive else 0,
-        method=rules.method if counts_rest and accusation.method == solution.method else 0,
+        culprit=rules.culprit,
+        motive=rules.motive if accusation.motive == solution.motive else 0,
+        method=rules.method if accusation.method == solution.method else 0,
         evidence=len(covered) * rules.points_per_group,
         groups_covered=covered,
     )

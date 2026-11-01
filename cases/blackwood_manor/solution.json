@@ -185,7 +185,6 @@
     "motive": 20,
     "method": 20,
     "evidence": 20,
-    "motive_method_require_culprit": true,
     "points_per_group": 5
   }
 }

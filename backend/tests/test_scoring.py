@@ -1,4 +1,7 @@
-"""Deterministic scoring (D10): 40 culprit, 20 motive, 20 method, 5 per key evidence group."""
+"""Deterministic scoring (D10, D29): 40 culprit, 20 motive, 20 method, 5 per key group.
+
+Nothing but the culprit scores without the right culprit.
+"""
 
 import pytest
 
@@ -36,9 +39,9 @@ def accuse(culprit: str, motive: str, method: str, *evidence: str) -> Accusation
             id="two items from the same group earn one group",
         ),
         pytest.param(
-            accuse("S_RICHARD", "MOT_KESTREL", "MTH_PUSHED", "E05"),
-            (0, 0, 0, 5),
-            id="evidence counts even with the wrong culprit, as the case's scoring says",
+            accuse("S_RICHARD", "MOT_KESTREL", "MTH_PUSHED", "E05", "E10", "E02", "E03"),
+            (0, 0, 0, 0),
+            id="the right evidence scores nothing with the wrong culprit",
         ),
     ],
 )
