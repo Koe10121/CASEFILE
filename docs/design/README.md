@@ -12,7 +12,7 @@
 | # | Milestone | Status |
 | --- | --- | --- |
 | 1 | Design CASE #001 and the case data model | Done |
-| 2 | Backend engine: Pydantic models, validator as pytest, engine core, Richard end-to-end in mock AI mode | In progress: step 3 of 4 (engine core) |
+| 2 | Backend engine: Pydantic models, validator as pytest, engine core, Richard end-to-end in mock AI mode | In review: step 4 of 4 (Richard end-to-end in mock AI mode) |
 | 3 | Frontend (Nuxt or Vue + Vite, still to decide) | |
 | 4 | AI integration: all four suspects | |
 | 5 | Full investigation experience: save/resume, accusation, scoring | |
