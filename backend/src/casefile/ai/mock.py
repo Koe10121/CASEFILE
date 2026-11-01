@@ -10,7 +10,7 @@ its briefing, so every rejection in mock mode is a bug in the engine, not the mo
 import re
 from collections.abc import Sequence
 
-from casefile.ai.contract import Exchange, NpcReply
+from casefile.ai.contract import Exchange, NpcReply, NpcTurn
 from casefile.engine.briefing import RevealableFact, SuspectBriefing
 
 _WORD = re.compile(r"[a-z0-9']+")
@@ -26,9 +26,12 @@ def _keywords(text: str) -> set[str]:
 class MockNpc:
     def respond(
         self, briefing: SuspectBriefing, history: Sequence[Exchange], player_text: str
+    ) -> NpcTurn:
+        return NpcTurn(reply=self._reply(briefing, history, player_text))
+
+    def _reply(
+        self, briefing: SuspectBriefing, history: Sequence[Exchange], player_text: str
     ) -> NpcReply:
-        if briefing.opening_statement is not None:
-            return NpcReply(demeanor=briefing.demeanor, dialogue=briefing.opening_statement)
         reveals = self._pick(briefing.may_reveal, player_text)
         if reveals:
             dialogue = " ".join(f.statement for f in reveals)

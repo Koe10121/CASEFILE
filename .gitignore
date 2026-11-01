@@ -9,7 +9,7 @@ __pycache__/
 dist/
 build/
 
-# Secrets stay local (see .env.example once the AI layer lands)
+# Secrets stay local (see backend/.env.example)
 .env
 .env.*
 !.env.example

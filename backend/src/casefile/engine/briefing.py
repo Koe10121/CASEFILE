@@ -52,8 +52,6 @@ class SuspectBriefing(_Brief):
     """Names of everyone in the house. The closed world: nobody else exists."""
     offstage: tuple[str, ...]
     named_objects: tuple[str, ...]
-    opening_statement: str | None
-    """Set on the first meeting only: the suspect's first words, lie included (D08)."""
     may_reveal: tuple[RevealableFact, ...]
     withholding: tuple[str, ...]
     """What the suspect knows they are holding back, phrased without the fact itself."""
@@ -65,9 +63,7 @@ class SuspectBriefing(_Brief):
     """Guarded facts, second person. Empty for everyone but the culprit."""
 
 
-def build_briefing(
-    engine: Engine, state: GameState, suspect: CharacterId, *, first_meeting: bool
-) -> SuspectBriefing:
+def build_briefing(engine: Engine, state: GameState, suspect: CharacterId) -> SuspectBriefing:
     ix = engine.index
     case = ix.bundle.case
     b = ix.briefings[suspect]
@@ -94,7 +90,6 @@ def build_briefing(
         present=tuple(ix.characters[c].name for c in case.world.present),
         offstage=case.world.offstage,
         named_objects=case.world.named_objects,
-        opening_statement=b.opening_statement.text if first_meeting else None,
         may_reveal=may_reveal,
         withholding=tuple(g.withheld_hint for g in b.gated if g.fact not in allowed),
         lies_to_keep=tuple(

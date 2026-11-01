@@ -1,10 +1,13 @@
 """The terminal game wins CASE #001 in mock AI mode, start to finish."""
 
 import io
+from pathlib import Path
+
+import pytest
 
 from casefile.ai.mock import MockNpc
 from casefile.case import CaseBundle
-from casefile.cli import Cli
+from casefile.cli import Cli, main
 from casefile.engine import Engine
 from casefile.session import GameSession
 
@@ -42,3 +45,11 @@ def test_bad_commands_explain_themselves(blackwood: CaseBundle) -> None:
     assert "! talk to a suspect first" in transcript
     assert "! Guest room 2 (Victoria's) is not accessible yet" in transcript
     assert "! S_NOBODY is not a suspect you can interview" in transcript
+
+
+def test_claude_mode_needs_a_key(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.chdir(tmp_path)  # no backend/.env to pick up
+    with pytest.raises(SystemExit) as excinfo:
+        main(["--claude"])
+    assert excinfo.value.code == 2
