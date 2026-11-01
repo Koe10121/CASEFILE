@@ -37,14 +37,14 @@ IDs are permanent once published, because saves refer to them. The API only ever
 ```
 
 - `kind` is one of `presence`, `movement`, `action`, `object_state`, `relationship`, `motive` or `knowledge`.
-- `time.precision` is `exact`, `approx` (±10 min) or `none`. An approximate time can never be used to catch a lie.
+- `time` has `from` and `to` (`"HH:MM"`, 24-hour; `to` is `null` for an instant) and `precision`, which is `exact` or `approx` (±10 min). An approximate time can never be used to catch a lie. An untimed fact leaves `time` out (D17).
 - There is no separate timeline. The true timeline is all the timed facts, sorted.
 
-**Evidence**: `id`, `name`, `location`, `summary`, optional `discover_when` (a condition), `establishes` (fact IDs), and `deeper_reads` (`when` + `establishes` + `text`), which give up more once the player knows something else. If `discover_when` is left out, the item is available from the start.
+**Evidence**: `id`, `name`, `location`, `summary`, optional `discover_when` (a condition), `establishes` (fact IDs), `deeper_reads` (`when` + `establishes` + `text`), which give up more once the player knows something else, and optional `text`, the verbatim contents of a document the player can read. If `discover_when` is left out, the item is available from the start.
 
 **Location**: `id`, `name`, `description` and an optional `accessible_when` condition.
 
-**Suspect briefing**: `persona` (summary, voice, sample lines, default demeanour), `opening_statement` (`text` + `claims`: the lies put on record when the player first meets them), `shares_freely`, `gated` (`fact` + `withheld_hint` + `reveal_when`), `lies` and `breaking_point` (`when` + `reveal` + `demeanor`).
+**Suspect briefing** (`AuthoredBriefing` in code, to keep it apart from the per-turn `SuspectBriefing` the engine builds): `persona` (summary, voice, sample lines, default demeanour), `opening_statement` (`text` + `claims`: the lies put on record when the player first meets them), `shares_freely`, `gated` (`fact` + `withheld_hint` + `reveal_when`), `lies` and `breaking_point` (`when` + `reveal` + `demeanor`).
 
 **Lie**
 
@@ -71,6 +71,25 @@ Atom      := { "location_searched": LOC } | { "evidence_found": E }
 Conditions have no negation, so every condition is monotone and solvability is a fixpoint.
 
 **Guarded fact**: `id`, `statement` (second person, for the culprit's briefing), optional `time`, `location`, `subjects`, `kind`, and `leak_markers` (`phrase` + optional `unless_known`).
+
+## Where each rule is enforced
+
+The Pydantic models in `backend/src/casefile/case/` enforce every rule that needs only one file. The case validator enforces the rules that need more than one (the table under [Validator rules](#validator-rules)).
+
+| Enforced by the models | Example of what is rejected |
+| --- | --- |
+| No unknown keys in any object | `"subject"` instead of `"subjects"` |
+| ID format by prefix | `"E01"` where a fact ID is expected |
+| Times are `"HH:MM"`, 24-hour; spans don't end before they start | `"8:00"`, `"20:00:00"`, `from 21:00 to 20:50` |
+| Enums: fact `kind`, `tags`, `precision`, difficulty settings | `"kind": "rumour"` |
+| A condition has exactly one key, and it is a known one | `{"fact_known": …, "lie_caught": …}` |
+| IDs are unique within their list; lie IDs are unique across suspects | Two facts called `F_DINNER` |
+| A suspect never both shares and gates the same fact | `F_RICHARD_DEBTS` in `shares_freely` and `gated` |
+| Every lie has at least one `contradicted_by` fact | `"contradicted_by": []` |
+| The culprit has 3 to 5 guarded facts, each with a leak marker | Two guarded facts |
+| Scoring totals 100, and the evidence points are exactly reachable | Four groups of 5 points but `"evidence": 25` |
+| Solution steps are numbered 1..n and each one learns facts or breaks a lie | Steps out of order |
+| All three files share one `case_id` (checked by the loader) | A solution from another case |
 
 ## NPC output contract
 
