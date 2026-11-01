@@ -1,0 +1,1459 @@
+{
+  "schema_version": "1.0",
+  "case_id": "blackwood-001",
+  "title": "The Last Evening at Blackwood Manor",
+  "setting": {
+    "date": "2026-10-31",
+    "place": "Blackwood Manor, North Yorkshire moors",
+    "crime_window": {
+      "from": "20:00",
+      "to": "23:00"
+    },
+    "intro": "Halloween. A storm has taken the mobile mast. At 22:45 Arthur Blackwood was found dead in his soundproofed study. Everyone in the house heard him alive at 22:25. You arrive at 23:40."
+  },
+  "detective": {
+    "name": "DI Rhea Voss",
+    "callsign": "Nightjar",
+    "bio": "North Yorkshire Major Crimes. Takes the calls that come in after midnight. Former digital forensics; wears her late father's wind-up watch because she does not trust a clock that can be told what time it is."
+  },
+  "world": {
+    "present": [
+      "S_ARTHUR",
+      "S_VICTORIA",
+      "S_RICHARD",
+      "S_ELEANOR",
+      "S_THOMAS"
+    ],
+    "offstage": [
+      "Harcourt Private Bank fraud team (phone only)",
+      "San Francisco launch team (video call only)",
+      "Thomas's daughter in Leeds (phone only)",
+      "Blackwood Systems security desk (releases logs to police)"
+    ],
+    "named_objects": [
+      "HALDEN wall panel",
+      "study intercom",
+      "crystal Northern Tech Innovator award",
+      "1982 port",
+      "desk notepad",
+      "journal",
+      "gate camera",
+      "USB stick",
+      "will",
+      "VS-iPad",
+      "laptop bag"
+    ]
+  },
+  "characters": [
+    {
+      "id": "S_ARTHUR",
+      "name": "Arthur Blackwood",
+      "role": "victim",
+      "age": 61,
+      "public_bio": "Founder of Blackwood Systems, maker of the HALDEN smart-home assistant. Brilliant, controlling, lately suspicious of everyone."
+    },
+    {
+      "id": "S_VICTORIA",
+      "name": "Victoria Shaw",
+      "role": "suspect",
+      "age": 34,
+      "public_bio": "Arthur's executive assistant for six years. Runs his calendar, inbox and voice memos; admin of the house system. Hair always pinned up."
+    },
+    {
+      "id": "S_RICHARD",
+      "name": "Richard Okafor",
+      "role": "suspect",
+      "age": 58,
+      "public_bio": "Business partner and CFO, 20% shareholder, pushing to sell the company to Kestrel Group."
+    },
+    {
+      "id": "S_ELEANOR",
+      "name": "Eleanor Blackwood",
+      "role": "suspect",
+      "age": 52,
+      "public_bio": "Arthur's wife of 22 years, a former concert cellist. Short silver hair. A famously cold marriage."
+    },
+    {
+      "id": "S_THOMAS",
+      "name": "Thomas Reid",
+      "role": "suspect",
+      "age": 63,
+      "public_bio": "Butler and house manager for fourteen years. Discreet, observant. His daughter is due to give birth in Leeds."
+    }
+  ],
+  "locations": [
+    {
+      "id": "LOC_HALL",
+      "name": "Hall",
+      "description": "Panelled hall; the HALDEN wall panel glows by the stairs."
+    },
+    {
+      "id": "LOC_STUDY",
+      "name": "Study",
+      "description": "Arthur's soundproofed study, lit by one desk lamp."
+    },
+    {
+      "id": "LOC_DRAWING_ROOM",
+      "name": "Drawing room",
+      "description": "Where the household waits; the fire is low."
+    },
+    {
+      "id": "LOC_DINING_ROOM",
+      "name": "Dining room",
+      "description": "Dinner for five, half cleared."
+    },
+    {
+      "id": "LOC_BILLIARD_ROOM",
+      "name": "Billiard room",
+      "description": "Cigar smoke and an abandoned game."
+    },
+    {
+      "id": "LOC_OFFICE",
+      "name": "Arthur's office",
+      "description": "The company office, separate from the study."
+    },
+    {
+      "id": "LOC_LIBRARY",
+      "name": "Library",
+      "description": "Victoria's laptop stand, still warm."
+    },
+    {
+      "id": "LOC_CLOAKROOM",
+      "name": "Cloakroom",
+      "description": "Guests' coats on brass hooks."
+    },
+    {
+      "id": "LOC_KITCHEN",
+      "name": "Kitchen and pantry",
+      "description": "A tea tray, never delivered."
+    },
+    {
+      "id": "LOC_WINE_CELLAR",
+      "name": "Wine cellar",
+      "description": "One empty slot in the 1982 rack."
+    },
+    {
+      "id": "LOC_GUEST_ROOM_2",
+      "name": "Guest room 2 (Victoria's)",
+      "description": "Tidy, too tidy.",
+      "accessible_when": {
+        "lie_caught": "LIE_VICTORIA_NO_CONTACT"
+      }
+    },
+    {
+      "id": "LOC_TERRACE",
+      "name": "Terrace",
+      "description": "Wet flagstones; the study window is visible from here."
+    },
+    {
+      "id": "LOC_GATEHOUSE",
+      "name": "Gatehouse",
+      "description": "Two minutes down the drive; the only bar of signal."
+    }
+  ],
+  "facts": [
+    {
+      "id": "F_DINNER",
+      "statement": "All five ate dinner together in the dining room from 20:00 to 20:50, served by Thomas.",
+      "kind": "presence",
+      "subjects": [
+        "S_ARTHUR",
+        "S_VICTORIA",
+        "S_RICHARD",
+        "S_ELEANOR",
+        "S_THOMAS"
+      ],
+      "location": "LOC_DINING_ROOM",
+      "time": {
+        "from": "20:00",
+        "to": "20:50",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_TOAST_KESTREL",
+      "statement": "At 20:35 Arthur announced at dinner that he was pulling out of the Kestrel deal 'for good'.",
+      "kind": "action",
+      "subjects": [
+        "S_ARTHUR"
+      ],
+      "location": "LOC_DINING_ROOM",
+      "time": {
+        "from": "20:35",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_ARGUMENT",
+      "statement": "Arthur and Richard argued loudly in the hall from 20:40 to 20:44; Richard said 'You'll regret this, Arthur.'",
+      "kind": "action",
+      "subjects": [
+        "S_ARTHUR",
+        "S_RICHARD"
+      ],
+      "location": "LOC_HALL",
+      "time": {
+        "from": "20:40",
+        "to": "20:44",
+        "precision": "exact"
+      },
+      "tags": [
+        "red_herring"
+      ]
+    },
+    {
+      "id": "F_STUDY_SOUNDPROOF",
+      "statement": "The study is acoustically insulated for Arthur's calls; sounds inside cannot be heard in the hall.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY"
+    },
+    {
+      "id": "F_ALL_GATHER",
+      "statement": "From 22:47 everyone was together in the hall outside the study until the detective arrived.",
+      "kind": "presence",
+      "subjects": [
+        "S_VICTORIA",
+        "S_RICHARD",
+        "S_ELEANOR",
+        "S_THOMAS"
+      ],
+      "location": "LOC_HALL",
+      "time": {
+        "from": "22:47",
+        "to": "23:00",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_DEATH_BLOW",
+      "statement": "Arthur died from a single heavy blow to the back of the head.",
+      "kind": "object_state",
+      "subjects": [
+        "S_ARTHUR"
+      ],
+      "location": "LOC_STUDY",
+      "tags": [
+        "method"
+      ]
+    },
+    {
+      "id": "F_BODY_MOVED",
+      "statement": "Arthur fell near the award shelf and was dragged into his desk chair afterwards: drag marks on the rug, scuffed heels, his headset placed on his head, the chair turned to the window.",
+      "kind": "object_state",
+      "subjects": [
+        "S_ARTHUR"
+      ],
+      "location": "LOC_STUDY",
+      "tags": [
+        "method"
+      ]
+    },
+    {
+      "id": "F_AWARD_WIPED",
+      "statement": "The crystal award on the study shelf has no fingerprints at all.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "tags": [
+        "method"
+      ]
+    },
+    {
+      "id": "F_AWARD_BLOOD",
+      "statement": "There is a trace of Arthur's blood in the award's engraving.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "tags": [
+        "method"
+      ]
+    },
+    {
+      "id": "F_ARTHUR_HANDLES_AWARD",
+      "statement": "Arthur picked up his award every day; Thomas dusts it each morning wearing gloves.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_ARTHUR",
+        "S_THOMAS"
+      ],
+      "location": "LOC_STUDY"
+    },
+    {
+      "id": "F_PORT_FETCHED",
+      "statement": "A 1982 port from the wine cellar stands half-drunk on the desk; its slot in the cellar rack is empty.",
+      "kind": "object_state",
+      "subjects": [
+        "S_ARTHUR"
+      ],
+      "location": "LOC_STUDY"
+    },
+    {
+      "id": "F_LOCK_ARTHUR_IN_2052",
+      "statement": "Study lock log: entry by Arthur's key at 20:52.",
+      "kind": "object_state",
+      "subjects": [
+        "S_ARTHUR"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "20:52",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_LOCK_OUT_2110",
+      "statement": "Study lock log: door opened from inside at 21:10.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:10",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_LOCK_ELEANOR_IN_2116",
+      "statement": "Study lock log: entry by Eleanor's phone key at 21:16; opened from inside at 21:19.",
+      "kind": "object_state",
+      "subjects": [
+        "S_ELEANOR"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:16",
+        "to": "21:19",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_LOCK_ARTHUR_IN_2122",
+      "statement": "Study lock log: entry by Arthur's key at 21:22.",
+      "kind": "object_state",
+      "subjects": [
+        "S_ARTHUR"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:22",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_LOCK_OPEN_2144",
+      "statement": "Study lock log: door opened from inside at 21:44.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:44",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_LOCK_NO_OPENING_2144_2158",
+      "statement": "Study lock log: the door was not opened at all between 21:44 and 21:58.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:44",
+        "to": "21:58",
+        "precision": "exact"
+      },
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "F_LOCK_OPEN_2158",
+      "statement": "Study lock log: door opened from inside at 21:58.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:58",
+        "to": null,
+        "precision": "exact"
+      },
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "F_LOCK_PRIVACY_2159",
+      "statement": "Study lock log: privacy mode on at 21:59 by routine 'Quiet Hours - Study'; only admin keys work.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:59",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_LOCK_ELEANOR_DENIED_2225",
+      "statement": "Study lock log: Eleanor's key refused at 22:25 (privacy mode).",
+      "kind": "object_state",
+      "subjects": [
+        "S_ELEANOR"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "22:25",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_LOCK_UNLOCKED_2240",
+      "statement": "Study lock log: unlocked by routine at 22:40.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "22:40",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_LOCK_OPENED_2245",
+      "statement": "Study lock log: door opened from outside at 22:45.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "22:45",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_SUMMONS_2141",
+      "statement": "At 21:41 Arthur sent an intercom message from the study to Guest room 2 in his own voice: 'Victoria. Study. Now.'",
+      "kind": "action",
+      "subjects": [
+        "S_ARTHUR",
+        "S_VICTORIA"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:41",
+        "to": null,
+        "precision": "exact"
+      },
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "F_AUTOREPLY_2215",
+      "statement": "Study panel: at 22:15 the intercom answered with an auto-reply recording, dnd_reply.m4a; no live voice.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "22:15",
+        "to": null,
+        "precision": "exact"
+      },
+      "tags": [
+        "key",
+        "twist"
+      ]
+    },
+    {
+      "id": "F_AUTOREPLY_2225",
+      "statement": "Study panel: at 22:25 the intercom again played dnd_reply.m4a as an auto-reply.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "22:25",
+        "to": null,
+        "precision": "exact"
+      },
+      "tags": [
+        "key",
+        "twist"
+      ]
+    },
+    {
+      "id": "F_LIGHTS_ROUTINE_2220",
+      "statement": "Study panel: the study lights went off at 22:20 and on at 22:21, triggered by a routine, not a switch.",
+      "kind": "object_state",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "22:20",
+        "to": "22:21",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_ONLY_TWO_ADMINS",
+      "statement": "Only admin accounts can create or delete house routines, and there are exactly two: Arthur's and Victoria's.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_ARTHUR",
+        "S_VICTORIA"
+      ],
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "F_VSIPAD_APSTUDY_2144",
+      "statement": "Victoria's iPad (VS-iPad) joined the study's Wi-Fi access point at 21:44.",
+      "kind": "presence",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:44",
+        "to": null,
+        "precision": "exact"
+      },
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "F_CLIP_UPLOADED_2157",
+      "statement": "At 21:57 VS-iPad, on the study access point, uploaded the audio file dnd_reply.m4a.",
+      "kind": "action",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:57",
+        "to": null,
+        "precision": "exact"
+      },
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "F_ROUTINE_CREATED_2158",
+      "statement": "At 21:58 VS-iPad, on the study access point, created the routine 'Quiet Hours - Study': privacy lock 21:59, dnd_reply.m4a as intercom auto-reply, lights off/on 22:20, unlock 22:40.",
+      "kind": "action",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:58",
+        "to": null,
+        "precision": "exact"
+      },
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "F_VSIPAD_APLIBRARY_2200",
+      "statement": "VS-iPad joined the library access point at 22:00.",
+      "kind": "presence",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "location": "LOC_LIBRARY",
+      "time": {
+        "from": "22:00",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_ROUTINE_DELETED_2252",
+      "statement": "At 22:52 VS-iPad deleted the routine 'Quiet Hours - Study'. The audit log is append-only.",
+      "kind": "action",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "location": "LOC_HALL",
+      "time": {
+        "from": "22:52",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_BANK_CALL_2131",
+      "statement": "Harcourt Private Bank's fraud team phoned Arthur from 21:31 to 21:37.",
+      "kind": "action",
+      "subjects": [
+        "S_ARTHUR"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:31",
+        "to": "21:37",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_VOICE_FRAUD",
+      "statement": "GBP 2.1M was moved from Arthur's account to Northlight Advisory over a year, approved by phone voice ID in Arthur's voice; the latest on Thu 29 Oct at 14:10, while Arthur was on a transatlantic flight.",
+      "kind": "motive",
+      "subjects": [
+        "S_ARTHUR"
+      ],
+      "tags": [
+        "key",
+        "motive"
+      ]
+    },
+    {
+      "id": "F_NORTHLIGHT_CARD",
+      "statement": "Victoria's laptop bag holds a Northlight Advisory Ltd business debit card in her name.",
+      "kind": "object_state",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "location": "LOC_GUEST_ROOM_2",
+      "tags": [
+        "key",
+        "motive"
+      ]
+    },
+    {
+      "id": "F_VOICE_CLIPS",
+      "statement": "Victoria's iPad holds a folder 'AB_voice': 412 of Arthur's voice memos and 30 short generated clips in his voice, including dnd_reply, authorise_01 and yes_its_me_03.",
+      "kind": "object_state",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "location": "LOC_GUEST_ROOM_2",
+      "tags": [
+        "key",
+        "method"
+      ]
+    },
+    {
+      "id": "F_JOURNAL",
+      "statement": "Arthur's journal: 'The house is listening. Harcourt queried a payment I don't remember making. Eleanor says I'm forgetting things. Last week I swear I heard myself in the hall speaker.'",
+      "kind": "knowledge",
+      "subjects": [
+        "S_ARTHUR"
+      ],
+      "location": "LOC_STUDY",
+      "tags": [
+        "red_herring"
+      ]
+    },
+    {
+      "id": "F_VICTORIA_RUNS_MEMOS",
+      "statement": "Victoria transcribes and files all of Arthur's voice memos.",
+      "kind": "relationship",
+      "subjects": [
+        "S_VICTORIA",
+        "S_ARTHUR"
+      ]
+    },
+    {
+      "id": "F_ARTHUR_PARANOID",
+      "statement": "In recent months Arthur had become suspicious and forgetful, and said the house was watching him.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_ARTHUR"
+      ]
+    },
+    {
+      "id": "F_VICTORIA_MOTHER",
+      "statement": "Victoria's mother has early-onset dementia and lives in a private care home in Harrogate costing about GBP 9,000 a month.",
+      "kind": "relationship",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "tags": [
+        "motive"
+      ]
+    },
+    {
+      "id": "F_VICTORIA_ROOM_2050_2144",
+      "statement": "After dinner Victoria went to Guest room 2 and worked there until 21:44.",
+      "kind": "presence",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "location": "LOC_GUEST_ROOM_2",
+      "time": {
+        "from": "20:50",
+        "to": "21:44",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_VICTORIA_SAW_BANK_CALL",
+      "statement": "Victoria saw the 21:31 call from Harcourt's fraud line on Arthur's call-screening feed.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "time": {
+        "from": "21:31",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_VICTORIA_SF_CALL",
+      "statement": "Victoria was on a recorded video call with the San Francisco launch team in the library from 22:05 to 22:40.",
+      "kind": "presence",
+      "subjects": [
+        "S_VICTORIA"
+      ],
+      "location": "LOC_LIBRARY",
+      "time": {
+        "from": "22:00",
+        "to": "22:42",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_VICTORIA_JOINED_ELEANOR",
+      "statement": "Victoria came from the library and joined Eleanor in the drawing room at 22:42.",
+      "kind": "presence",
+      "subjects": [
+        "S_VICTORIA",
+        "S_ELEANOR"
+      ],
+      "location": "LOC_DRAWING_ROOM",
+      "time": {
+        "from": "22:42",
+        "to": "22:47",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_VICTORIA_ACCUSED",
+      "statement": "Arthur accused Victoria of stealing from him and said he would call the police in the morning.",
+      "kind": "action",
+      "subjects": [
+        "S_VICTORIA",
+        "S_ARTHUR"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:44",
+        "to": "21:52",
+        "precision": "approx"
+      },
+      "tags": [
+        "motive"
+      ]
+    },
+    {
+      "id": "F_RICHARD_BILLIARD_2050_2136",
+      "statement": "Richard was in the billiard room from 20:50 to 21:36.",
+      "kind": "presence",
+      "subjects": [
+        "S_RICHARD"
+      ],
+      "location": "LOC_BILLIARD_ROOM",
+      "time": {
+        "from": "20:50",
+        "to": "21:36",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_RICHARD_OFFICE",
+      "statement": "Office lock log: guest code 4471 (R. Okafor) entered Arthur's office at 21:36; opened from inside at 21:52.",
+      "kind": "presence",
+      "subjects": [
+        "S_RICHARD"
+      ],
+      "location": "LOC_OFFICE",
+      "time": {
+        "from": "21:36",
+        "to": "21:52",
+        "precision": "exact"
+      },
+      "tags": [
+        "red_herring"
+      ]
+    },
+    {
+      "id": "F_RICHARD_BILLIARD_2152_2215",
+      "statement": "Richard was back in the billiard room from 21:52 to 22:15.",
+      "kind": "presence",
+      "subjects": [
+        "S_RICHARD"
+      ],
+      "location": "LOC_BILLIARD_ROOM",
+      "time": {
+        "from": "21:52",
+        "to": "22:15",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_RICHARD_TERRACE",
+      "statement": "Richard smoked on the terrace from 22:15 to 22:30.",
+      "kind": "presence",
+      "subjects": [
+        "S_RICHARD"
+      ],
+      "location": "LOC_TERRACE",
+      "time": {
+        "from": "22:15",
+        "to": "22:30",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_RICHARD_SAW_LIGHTS",
+      "statement": "From the terrace at about 22:20 Richard saw the study lights go off and come back on.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_RICHARD"
+      ],
+      "location": "LOC_TERRACE",
+      "time": {
+        "from": "22:20",
+        "to": null,
+        "precision": "approx"
+      }
+    },
+    {
+      "id": "F_RICHARD_BILLIARD_2230_2245",
+      "statement": "Richard was in the billiard room from 22:30 to 22:45, then ran to the hall at Thomas's shout.",
+      "kind": "presence",
+      "subjects": [
+        "S_RICHARD"
+      ],
+      "location": "LOC_BILLIARD_ROOM",
+      "time": {
+        "from": "22:30",
+        "to": "22:45",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_RICHARD_999",
+      "statement": "Richard called 999 on the hall landline at 22:50.",
+      "kind": "action",
+      "subjects": [
+        "S_RICHARD"
+      ],
+      "location": "LOC_HALL",
+      "time": {
+        "from": "22:50",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_TERM_SHEET_COPIED",
+      "statement": "Richard's USB stick holds Kestrel_term_sheet_FINAL.pdf, copied from the office PC at 21:41.",
+      "kind": "action",
+      "subjects": [
+        "S_RICHARD"
+      ],
+      "location": "LOC_OFFICE",
+      "time": {
+        "from": "21:41",
+        "to": null,
+        "precision": "exact"
+      },
+      "tags": [
+        "red_herring"
+      ]
+    },
+    {
+      "id": "F_RICHARD_DEBTS",
+      "statement": "Richard mortgaged his house against the Kestrel sale and is close to ruin without it.",
+      "kind": "motive",
+      "subjects": [
+        "S_RICHARD"
+      ],
+      "tags": [
+        "red_herring"
+      ]
+    },
+    {
+      "id": "F_RICHARD_BOARD_PLAN",
+      "statement": "Richard copied the term sheet to take the Kestrel deal to the board behind Arthur's back.",
+      "kind": "motive",
+      "subjects": [
+        "S_RICHARD"
+      ],
+      "tags": [
+        "red_herring"
+      ]
+    },
+    {
+      "id": "F_RICHARD_SAW_IPAD",
+      "statement": "At about 22:52, while everyone waited for the police, Richard saw Victoria tapping on her iPad.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_RICHARD",
+        "S_VICTORIA"
+      ],
+      "location": "LOC_HALL",
+      "time": {
+        "from": "22:52",
+        "to": null,
+        "precision": "approx"
+      }
+    },
+    {
+      "id": "F_ELEANOR_DRAWING_2050_2116",
+      "statement": "Eleanor was in the drawing room from 20:50 to 21:16.",
+      "kind": "presence",
+      "subjects": [
+        "S_ELEANOR"
+      ],
+      "location": "LOC_DRAWING_ROOM",
+      "time": {
+        "from": "20:50",
+        "to": "21:16",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_ELEANOR_TOOK_WILL",
+      "statement": "At 21:16, while Arthur was in the cellar, Eleanor took his new will from the study desk.",
+      "kind": "action",
+      "subjects": [
+        "S_ELEANOR"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:16",
+        "to": "21:19",
+        "precision": "exact"
+      },
+      "tags": [
+        "red_herring"
+      ]
+    },
+    {
+      "id": "F_WILL_BURNT",
+      "statement": "Burnt fragment in the drawing-room grate: the new will of Arthur J. Blackwood dated 30 October 2026, leaving his wife Eleanor a fixed sum.",
+      "kind": "object_state",
+      "subjects": [
+        "S_ELEANOR"
+      ],
+      "location": "LOC_DRAWING_ROOM",
+      "tags": [
+        "red_herring"
+      ]
+    },
+    {
+      "id": "F_ELEANOR_BURNT_WILL",
+      "statement": "Eleanor burned the will in the drawing-room grate at about 21:25.",
+      "kind": "action",
+      "subjects": [
+        "S_ELEANOR"
+      ],
+      "location": "LOC_DRAWING_ROOM",
+      "time": {
+        "from": "21:25",
+        "to": null,
+        "precision": "approx"
+      },
+      "tags": [
+        "red_herring"
+      ]
+    },
+    {
+      "id": "F_ELEANOR_DRAWING_2119_2225",
+      "statement": "Eleanor was in the drawing room from 21:19 to 22:24.",
+      "kind": "presence",
+      "subjects": [
+        "S_ELEANOR"
+      ],
+      "location": "LOC_DRAWING_ROOM",
+      "time": {
+        "from": "21:19",
+        "to": "22:24",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_ELEANOR_HEARD_VOICE",
+      "statement": "At 22:25, at the study door, Eleanor heard Arthur's voice through the intercom: 'Not now, I'm on a call,' followed by a weary sigh.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_ELEANOR"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "22:25",
+        "to": "22:27",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_SAME_WORDS",
+      "statement": "The words and the sigh Eleanor heard were exactly the same as the ones Thomas heard.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_ELEANOR",
+        "S_THOMAS"
+      ],
+      "tags": [
+        "twist"
+      ]
+    },
+    {
+      "id": "F_ELEANOR_DRAWING_2227_2245",
+      "statement": "Eleanor was in the drawing room from 22:27 to 22:47.",
+      "kind": "presence",
+      "subjects": [
+        "S_ELEANOR"
+      ],
+      "location": "LOC_DRAWING_ROOM",
+      "time": {
+        "from": "22:27",
+        "to": "22:47",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_THOMAS_KITCHEN_2050_2150",
+      "statement": "Thomas cleared up in the kitchen and pantry from 20:50 to 21:50.",
+      "kind": "presence",
+      "subjects": [
+        "S_THOMAS"
+      ],
+      "location": "LOC_KITCHEN",
+      "time": {
+        "from": "20:50",
+        "to": "21:50",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_GATE_FOOTAGE_THOMAS",
+      "statement": "Gate camera: Thomas at the gate on his phone from 21:51 to 22:04.",
+      "kind": "presence",
+      "subjects": [
+        "S_THOMAS"
+      ],
+      "location": "LOC_GATEHOUSE",
+      "time": {
+        "from": "21:51",
+        "to": "22:04",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_WINDOW_FIGURE_2155",
+      "statement": "Gate camera: at 21:55 a figure moves across the lit study window, bending over the desk.",
+      "kind": "presence",
+      "subjects": [],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "21:55",
+        "to": null,
+        "precision": "exact"
+      },
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "F_THOMAS_DAUGHTER",
+      "statement": "Thomas went to the gate, the only place with mobile signal, to phone his daughter in labour in Leeds; his grandson was born at 21:58.",
+      "kind": "action",
+      "subjects": [
+        "S_THOMAS"
+      ],
+      "location": "LOC_GATEHOUSE",
+      "time": {
+        "from": "21:50",
+        "to": "22:06",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_THOMAS_SAW_FIGURE",
+      "statement": "From the gate at about 21:55 Thomas saw a figure in dark clothes standing over the study desk.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_THOMAS"
+      ],
+      "location": "LOC_GATEHOUSE",
+      "time": {
+        "from": "21:55",
+        "to": null,
+        "precision": "approx"
+      }
+    },
+    {
+      "id": "F_FIGURE_HAIR_UP",
+      "statement": "The figure Thomas saw had their hair pinned up.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_THOMAS"
+      ],
+      "tags": [
+        "key"
+      ]
+    },
+    {
+      "id": "F_THOMAS_KITCHEN_2206_2245",
+      "statement": "Thomas was in the kitchen from 22:06 to 22:45, apart from going to the study intercom at 22:15.",
+      "kind": "presence",
+      "subjects": [
+        "S_THOMAS"
+      ],
+      "location": "LOC_KITCHEN",
+      "time": {
+        "from": "22:06",
+        "to": "22:45",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_THOMAS_HEARD_VOICE",
+      "statement": "At 22:15 Thomas asked over the study intercom if Arthur wanted his tea and heard 'Not now, I'm on a call,' with a sigh.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_THOMAS"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "22:15",
+        "to": null,
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_NOT_SAID_NAME",
+      "statement": "The voice did not say Thomas's name; in fourteen years Arthur always said his name.",
+      "kind": "knowledge",
+      "subjects": [
+        "S_THOMAS"
+      ],
+      "tags": [
+        "twist"
+      ]
+    },
+    {
+      "id": "F_THOMAS_FOUND_BODY",
+      "statement": "At 22:45 Thomas brought the tea anyway, found the study unlocked and Arthur dead in his chair with his headset on.",
+      "kind": "action",
+      "subjects": [
+        "S_THOMAS"
+      ],
+      "location": "LOC_STUDY",
+      "time": {
+        "from": "22:45",
+        "to": "22:47",
+        "precision": "exact"
+      }
+    },
+    {
+      "id": "F_WILL_ON_DESK",
+      "statement": "Arthur kept his new will on the study desk, to sign on Monday.",
+      "kind": "object_state",
+      "subjects": [
+        "S_ARTHUR"
+      ],
+      "location": "LOC_STUDY"
+    },
+    {
+      "id": "F_VICTORIA_HAIR",
+      "statement": "Victoria wears her hair pinned up; Eleanor's is cut short.",
+      "kind": "object_state",
+      "subjects": [
+        "S_VICTORIA",
+        "S_ELEANOR"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E01",
+      "name": "Arthur's body and the scene",
+      "location": "LOC_STUDY",
+      "summary": "Arthur slumped in his desk chair, headset on, facing the dark window.",
+      "establishes": [
+        "F_DEATH_BLOW",
+        "F_PORT_FETCHED"
+      ],
+      "deeper_reads": [
+        {
+          "when": {
+            "location_searched": "LOC_STUDY"
+          },
+          "establishes": [
+            "F_BODY_MOVED"
+          ],
+          "text": "Look closer: drag marks on the rug from the shelf to the chair, and scuffed heels. He didn't die sitting down."
+        }
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Crystal 'Northern Tech Innovator' award",
+      "location": "LOC_STUDY",
+      "summary": "A heavy crystal award back on its shelf.",
+      "discover_when": {
+        "location_searched": "LOC_STUDY"
+      },
+      "establishes": [
+        "F_AWARD_WIPED",
+        "F_AWARD_BLOOD"
+      ],
+      "deeper_reads": []
+    },
+    {
+      "id": "E03",
+      "name": "Arthur's desk notepad",
+      "location": "LOC_STUDY",
+      "summary": "Hurried notes in Arthur's hand.",
+      "discover_when": {
+        "location_searched": "LOC_STUDY"
+      },
+      "establishes": [
+        "F_BANK_CALL_2131",
+        "F_VOICE_FRAUD"
+      ],
+      "deeper_reads": [],
+      "text": "Harcourt fraud 21:31. VoiceKey phone auth. Thu 29th 14:10?? I was over the Atlantic. 2.1m -> Northlight Advisory. Who could sound like me?"
+    },
+    {
+      "id": "E04",
+      "name": "Study door lock log",
+      "location": "LOC_HALL",
+      "summary": "The hall panel's access history for the study door.",
+      "establishes": [
+        "F_LOCK_ARTHUR_IN_2052",
+        "F_LOCK_OUT_2110",
+        "F_LOCK_ELEANOR_IN_2116",
+        "F_LOCK_ARTHUR_IN_2122",
+        "F_LOCK_OPEN_2144",
+        "F_LOCK_NO_OPENING_2144_2158",
+        "F_LOCK_OPEN_2158",
+        "F_LOCK_PRIVACY_2159",
+        "F_LOCK_ELEANOR_DENIED_2225",
+        "F_LOCK_UNLOCKED_2240",
+        "F_LOCK_OPENED_2245"
+      ],
+      "deeper_reads": []
+    },
+    {
+      "id": "E05",
+      "name": "Study wall panel",
+      "location": "LOC_STUDY",
+      "summary": "Lights, heating and the intercom for the study.",
+      "discover_when": {
+        "location_searched": "LOC_STUDY"
+      },
+      "establishes": [
+        "F_LIGHTS_ROUTINE_2220"
+      ],
+      "deeper_reads": [
+        {
+          "when": {
+            "any": [
+              {
+                "fact_known": "F_THOMAS_HEARD_VOICE"
+              },
+              {
+                "fact_known": "F_ELEANOR_HEARD_VOICE"
+              }
+            ]
+          },
+          "establishes": [
+            "F_SUMMONS_2141",
+            "F_AUTOREPLY_2215",
+            "F_AUTOREPLY_2225"
+          ],
+          "text": "Intercom history: 21:41 outgoing to Guest room 2 (play: 'Victoria. Study. Now.'). 22:15 incoming from hall: auto-reply played (dnd_reply.m4a). 22:25 incoming: auto-reply played (dnd_reply.m4a)."
+        }
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Gate camera footage",
+      "location": "LOC_GATEHOUSE",
+      "summary": "The recorder in the gatehouse; the camera looks up the drive at the house.",
+      "discover_when": {
+        "location_searched": "LOC_GATEHOUSE"
+      },
+      "establishes": [
+        "F_GATE_FOOTAGE_THOMAS",
+        "F_WINDOW_FIGURE_2155"
+      ],
+      "deeper_reads": []
+    },
+    {
+      "id": "E07",
+      "name": "Office lock log",
+      "location": "LOC_OFFICE",
+      "summary": "Access history for Arthur's office door.",
+      "discover_when": {
+        "location_searched": "LOC_OFFICE"
+      },
+      "establishes": [
+        "F_RICHARD_OFFICE"
+      ],
+      "deeper_reads": []
+    },
+    {
+      "id": "E08",
+      "name": "USB stick",
+      "location": "LOC_CLOAKROOM",
+      "summary": "In the pocket of Richard's coat.",
+      "discover_when": {
+        "lie_caught": "LIE_RICHARD_BILLIARD"
+      },
+      "establishes": [
+        "F_TERM_SHEET_COPIED"
+      ],
+      "deeper_reads": []
+    },
+    {
+      "id": "E09",
+      "name": "Burnt will fragment",
+      "location": "LOC_DRAWING_ROOM",
+      "summary": "A scorched corner of thick paper in the grate.",
+      "discover_when": {
+        "location_searched": "LOC_DRAWING_ROOM"
+      },
+      "establishes": [
+        "F_WILL_BURNT"
+      ],
+      "deeper_reads": []
+    },
+    {
+      "id": "E10",
+      "name": "HALDEN audit export",
+      "location": "LOC_HALL",
+      "summary": "The append-only audit trail, released overnight by the Blackwood Systems security desk.",
+      "discover_when": {
+        "fact_known": "F_AUTOREPLY_2215"
+      },
+      "establishes": [
+        "F_ONLY_TWO_ADMINS",
+        "F_VSIPAD_APSTUDY_2144",
+        "F_CLIP_UPLOADED_2157",
+        "F_ROUTINE_CREATED_2158",
+        "F_VSIPAD_APLIBRARY_2200",
+        "F_ROUTINE_DELETED_2252"
+      ],
+      "deeper_reads": []
+    },
+    {
+      "id": "E11",
+      "name": "Victoria's laptop bag",
+      "location": "LOC_GUEST_ROOM_2",
+      "summary": "A leather bag on the desk in Guest room 2.",
+      "discover_when": {
+        "location_searched": "LOC_GUEST_ROOM_2"
+      },
+      "establishes": [
+        "F_NORTHLIGHT_CARD",
+        "F_VOICE_CLIPS"
+      ],
+      "deeper_reads": []
+    },
+    {
+      "id": "E12",
+      "name": "Arthur's journal",
+      "location": "LOC_STUDY",
+      "summary": "A leather journal in the desk drawer.",
+      "discover_when": {
+        "location_searched": "LOC_STUDY"
+      },
+      "establishes": [
+        "F_JOURNAL"
+      ],
+      "deeper_reads": []
+    }
+  ],
+  "accusation_options": {
+    "culprits": [
+      "S_RICHARD",
+      "S_ELEANOR",
+      "S_THOMAS",
+      "S_VICTORIA"
+    ],
+    "motives": [
+      {
+        "id": "MOT_INHERIT",
+        "label": "To inherit before the new will was signed"
+      },
+      {
+        "id": "MOT_KESTREL",
+        "label": "To save the Kestrel deal"
+      },
+      {
+        "id": "MOT_KEEP_JOB",
+        "label": "To keep their job"
+      },
+      {
+        "id": "MOT_HIDE_THEFT",
+        "label": "To stop Arthur exposing a theft"
+      },
+      {
+        "id": "MOT_REVENGE",
+        "label": "Revenge for years of mistreatment"
+      },
+      {
+        "id": "MOT_JEALOUSY",
+        "label": "Jealousy over an affair"
+      }
+    ],
+    "methods": [
+      {
+        "id": "MTH_POISON_PORT",
+        "label": "Poisoned the port"
+      },
+      {
+        "id": "MTH_AWARD_STAGED",
+        "label": "Struck him with the award, staged him at his desk and used the house to fake signs of life"
+      },
+      {
+        "id": "MTH_AWARD_AFTER_UNLOCK",
+        "label": "Struck him with the award after the door unlocked at 22:40"
+      },
+      {
+        "id": "MTH_PUSHED",
+        "label": "Pushed him and he hit the desk"
+      },
+      {
+        "id": "MTH_SMOTHERED",
+        "label": "Smothered him"
+      }
+    ],
+    "max_evidence": 4
+  },
+  "difficulty_profiles": {
+    "easy": {
+      "contradictions": "auto_flag",
+      "hints": "auto_after_minutes:5",
+      "notebook": "by_suspect_and_time",
+      "evidence_picker": "relevant_only"
+    },
+    "normal": {
+      "contradictions": "side_by_side",
+      "hints": "on_request:3",
+      "notebook": "by_suspect",
+      "evidence_picker": "all_found"
+    },
+    "hard": {
+      "contradictions": "off",
+      "hints": "none",
+      "notebook": "flat",
+      "evidence_picker": "all_found"
+    }
+  }
+}
