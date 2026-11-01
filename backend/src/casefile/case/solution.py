@@ -65,11 +65,12 @@ class SolutionStep(CaseModel):
 
 
 class Scoring(CaseModel):
+    """Points per part of the accusation. Nothing but the culprit scores without it (D29)."""
+
     culprit: NonNegativeInt
     motive: NonNegativeInt
     method: NonNegativeInt
     evidence: NonNegativeInt
-    motive_method_require_culprit: bool
     points_per_group: PositiveInt
 
     @model_validator(mode="after")
