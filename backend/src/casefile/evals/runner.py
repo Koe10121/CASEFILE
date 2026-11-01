@@ -40,7 +40,7 @@ class TurnResult:
     question: str
     dialogue: str = ""
     error: str | None = None
-    """ProviderError kind, when the provider gave no usable reply."""
+    """The ProviderError ("kind: detail"), when the provider gave no usable reply."""
     accepted: tuple[str, ...] = ()
     invented_ids: tuple[str, ...] = ()
     guarded_attempts: tuple[str, ...] = ()
@@ -130,7 +130,7 @@ def _ask(session: GameSession, scenario: str, run: int, step: Ask) -> TurnResult
     try:
         reply = session.ask(step.text)
     except ProviderError as exc:
-        return replace(base, error=exc.kind)
+        return replace(base, error=str(exc))
 
     def rejected(reason: RejectReason) -> tuple[str, ...]:
         return tuple(r.proposed for r in reply.rejected if r.reason == reason)
@@ -181,14 +181,23 @@ def summarise(provider: str, results: list[TurnResult]) -> Summary:
     )
 
 
+class SetupError(Exception):
+    """Every question in the first interview failed: the provider isn't usable."""
+
+
 def run_suite(suite: EvalSuite, ai: Ai, settings: Settings, repeat: int) -> list[TurnResult]:
+    """Run every scenario ``repeat`` times. Stops at once with ``SetupError`` if the first
+    interview gets no replies at all (model not downloaded, Ollama not running, bad key)
+    rather than failing every question for minutes."""
     engine = Engine(load_valid_case(CASES / suite.case))
-    return [
-        turn
-        for sc in suite.scenarios
-        for run in range(1, repeat + 1)
-        for turn in run_scenario(engine, settings, ai, sc, run)
-    ]
+    results: list[TurnResult] = []
+    for sc in suite.scenarios:
+        for run in range(1, repeat + 1):
+            turns = run_scenario(engine, settings, ai, sc, run)
+            if not results and turns and all(t.error for t in turns):
+                raise SetupError(str(turns[0].error))
+            results += turns
+    return results
 
 
 # ------------------------------------------------------------------ report
@@ -276,7 +285,11 @@ def main(argv: list[str] | None = None) -> None:
         f"Running {len(suite.scenarios)} scenarios x {args.repeat} with {name}. "
         "This can take a few minutes."
     )
-    results = run_suite(suite, args.ai, settings, args.repeat)
+    try:
+        results = run_suite(suite, args.ai, settings, args.repeat)
+    except SetupError as exc:
+        hint = f" Is it downloaded? Try: ollama pull {name}" if args.ai == "ollama" else ""
+        parser.exit(1, f"No replies from {name}: {exc}.{hint}\n")
     summary = summarise(name, results)
     report = write_report(args.out, summary, results)
     print(summary_table(summary))
