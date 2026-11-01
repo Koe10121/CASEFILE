@@ -2,8 +2,9 @@
 
 The engine decides; the provider performs. A question to a suspect goes:
 
-    player text -> length cap -> briefing (engine) -> provider -> reveal check (engine)
-                -> leak guard (culprit only) -> dialogue shown, accepted facts learned
+    player text -> length cap -> briefing (engine) -> provider -> leak guard (culprit)
+                -> grounding (reveals must match the line shown, D41) -> reveal check
+                (engine) -> dialogue shown, accepted facts learned
 
 Everything that changes the truth is in ``log``, so ``engine.replay(log)`` rebuilds
 the state. The transcript is kept for display and for the model's context, but it is
@@ -13,7 +14,8 @@ never trusted as a source of facts (D14).
 from dataclasses import dataclass, field
 
 from casefile.ai.contract import Exchange, Usage
-from casefile.ai.guard import find_leaks
+from casefile.ai.grounding import ground, speaker_words
+from casefile.ai.guard import find_confession, find_leaks
 from casefile.ai.provider import NpcProvider
 from casefile.case.ids import CharacterId, EvidenceId, FactId, LocationId
 from casefile.engine.actions import (
@@ -25,7 +27,7 @@ from casefile.engine.actions import (
     ShowEvidence,
     TalkTo,
 )
-from casefile.engine.briefing import build_briefing
+from casefile.engine.briefing import SuspectBriefing, build_briefing
 from casefile.engine.engine import Engine, IllegalActionError, Outcome, RejectedReveal
 from casefile.engine.events import Event
 from casefile.engine.scoring import Accusation
@@ -47,7 +49,11 @@ class Reply:
     accepted: tuple[FactId, ...]
     rejected: tuple[RejectedReveal, ...]
     leaks: tuple[str, ...]
-    """Leak-marker phrases the provider's dialogue contained (it was replaced)."""
+    """Leak markers or confessions in the culprit's dialogue (the line was replaced)."""
+    unsupported: tuple[str, ...]
+    """Facts the provider declared but the dialogue didn't say (dropped, D41)."""
+    inferred: tuple[FactId, ...]
+    """Facts the dialogue clearly said but the provider didn't declare (counted, D41)."""
     events: tuple[Event, ...]
     usage: Usage
 
@@ -80,14 +86,14 @@ class GameSession:
         self.current_suspect = suspect
         briefing = build_briefing(self.engine, self.state, suspect)
         if not first_meeting:
-            return Reply("", briefing.demeanor, (), (), (), outcome.events, Usage())
+            return Reply("", briefing.demeanor, (), (), (), (), (), outcome.events, Usage())
         # The opening statement is authored, not generated: it must put the suspect's
         # first lie on record word for word (D08), and it costs no model call.
         opening = self.engine.index.briefings[suspect].opening_statement.text
         self.transcripts.setdefault(suspect, []).append(
             Exchange(detective="", suspect=opening, demeanor=briefing.demeanor)
         )
-        return Reply(opening, briefing.demeanor, (), (), (), outcome.events, Usage())
+        return Reply(opening, briefing.demeanor, (), (), (), (), (), outcome.events, Usage())
 
     def ask(self, text: str) -> Reply:
         if self.current_suspect is None:
@@ -126,16 +132,20 @@ class GameSession:
         self.tokens_used += turn.usage.total_tokens
         npc = turn.reply
 
-        disclosure = self.engine.disclose(self.state, suspect, npc.reveals)
-        self.state = disclosure.state
-        self.log.append(NpcReveal(suspect=suspect, reveals=npc.reveals))
-
+        # Guard first: everything after works on the line the player will actually see.
         leaks: tuple[str, ...] = ()
         dialogue = npc.dialogue
         if suspect == self.engine.index.bundle.solution.culprit:
-            leaks = find_leaks(dialogue, self.engine.index.guarded.values(), self.state.known_facts)
+            leaks = find_leaks(
+                dialogue, self.engine.index.guarded.values(), self.state.known_facts
+            ) + find_confession(dialogue, briefing.name)
             if leaks:
                 dialogue = LEAK_FALLBACK
+
+        grounding = ground(npc.reveals, dialogue, briefing.may_reveal, self._names(briefing))
+        disclosure = self.engine.disclose(self.state, suspect, grounding.proposals)
+        self.state = disclosure.state
+        self.log.append(NpcReveal(suspect=suspect, reveals=grounding.proposals))
 
         history.append(Exchange(detective=text, suspect=dialogue, demeanor=npc.demeanor))
         return Reply(
@@ -144,6 +154,14 @@ class GameSession:
             accepted=disclosure.accepted,
             rejected=disclosure.rejected,
             leaks=leaks,
+            unsupported=grounding.unsupported,
+            inferred=grounding.inferred,
             events=disclosure.events,
             usage=turn.usage,
         )
+
+    def _names(self, briefing: SuspectBriefing) -> frozenset[str]:
+        """Names that don't count as overlap: the speaker says "I", and everyone says
+        "him" for the victim."""
+        victims = (c.name for c in self.engine.index.characters.values() if c.role == "victim")
+        return speaker_words(briefing.name).union(*(speaker_words(v) for v in victims))

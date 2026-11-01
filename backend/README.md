@@ -69,7 +69,8 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 | `src/casefile/ai/prompt.py` | The suspect prompt: cached instructions, this turn's briefing, the reply schema |
 | `src/casefile/ai/claude.py` | `ClaudeNpc`: the Claude provider (structured output, prompt caching, usage) |
 | `src/casefile/ai/ollama.py` | `OllamaNpc`: the free local-model provider, same prompt and contract |
-| `src/casefile/ai/guard.py` | `find_leaks`: leak markers on the culprit's dialogue |
+| `src/casefile/ai/guard.py` | `find_leaks` and `find_confession`: the culprit's output guard |
+| `src/casefile/ai/grounding.py` | `ground`: keeps only the reveals the dialogue actually says, and adds facts it clearly states (D41) |
 | `src/casefile/session.py` | `GameSession`: one game, wiring the engine, a provider and the transcript |
 | `src/casefile/ai/factory.py` | `make_provider`: the provider a setting names |
 | `src/casefile/evals/` | The eval harness: scenario models, the per-line checks, the runner (`uv run casefile-eval`) |
@@ -83,6 +84,7 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 | `tests/test_richard_slice.py` | Richard's full lie ladder end to end; briefings hold nothing a suspect may not say; a misbehaving model can't change the truth; leak guard |
 | `tests/test_claude_provider.py` | The Claude provider against a fake client: request shape, caching, escaping, gating, every failure path |
 | `tests/test_ollama_provider.py` | The Ollama provider against a fake server: request, gating, escaping, failures |
+| `tests/test_grounding.py` | Grounding and the confession guard, on real lines from the first local eval |
 | `tests/test_evals.py` | The eval checks, the scenario file against the case, a clean mock baseline, and a bad reply tripping every check |
 | `tests/test_cli.py` | The terminal game wins CASE #001 in mock mode |
 | `tests/test_scoring.py` | Scoring cases, including the wrong culprit and two items from one group |

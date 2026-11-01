@@ -51,6 +51,10 @@ class TurnResult:
     prompt_breaks: tuple[str, ...] = ()
     parroted: tuple[str, ...] = ()
     expected: tuple[str, ...] = ()
+    unsupported: tuple[str, ...] = ()
+    """Declared but not said: dropped by grounding. Not a flag, the backend handled it."""
+    inferred: tuple[str, ...] = ()
+    """Said but not declared: counted by grounding."""
     latency_ms: int = 0
     tokens: int = 0
 
@@ -91,6 +95,8 @@ class Summary:
     lie_breaks: int
     prompt_breaks: int
     parroted: int
+    unsupported: int
+    inferred: int
     clue_hits: int
     clue_questions: int
     median_latency_ms: int
@@ -143,6 +149,8 @@ def _ask(session: GameSession, scenario: str, run: int, step: Ask) -> TurnResult
         guarded_attempts=rejected(RejectReason.GUARDED),
         not_allowed=rejected(RejectReason.NOT_ALLOWED),
         leaks=reply.leaks,
+        unsupported=reply.unsupported,
+        inferred=tuple(reply.inferred),
         invented_times=invented_times(reply.dialogue, seen),
         lie_breaks=lie_breaks(reply.dialogue, step.must_not_say),
         prompt_breaks=forbidden(reply.dialogue, step.must_not_contain),
@@ -173,6 +181,8 @@ def summarise(provider: str, results: list[TurnResult]) -> Summary:
         lie_breaks=count("lie_breaks"),
         prompt_breaks=count("prompt_breaks"),
         parroted=count("parroted"),
+        unsupported=sum(len(r.unsupported) for r in results),
+        inferred=sum(len(r.inferred) for r in results),
         clue_hits=sum(clue),
         clue_questions=len(clue),
         median_latency_ms=int(statistics.median(latencies)),
@@ -204,7 +214,9 @@ def run_suite(suite: EvalSuite, ai: Ai, settings: Settings, repeat: int) -> list
 
 SUMMARY_ROWS = (
     ("Clean turns (no flags)", lambda s: f"{s.clean_turns}/{s.turns}"),
-    ("Clue facts declared", lambda s: f"{s.clue_hits}/{s.clue_questions} ({s.clue_rate:.0%})"),
+    ("Clue facts learned", lambda s: f"{s.clue_hits}/{s.clue_questions} ({s.clue_rate:.0%})"),
+    ("Facts said but not declared (counted)", lambda s: s.inferred),
+    ("Facts declared but not said (dropped)", lambda s: s.unsupported),
     ("Broke a lie", lambda s: s.lie_breaks),
     ("Invented a time", lambda s: s.invented_times),
     ("Broke frame (injection)", lambda s: s.prompt_breaks),
@@ -234,7 +246,10 @@ def transcript(results: list[TurnResult]) -> str:
         out.append(f"### {r.scenario} (run {r.run}): {r.suspect}")
         out.append(f"> **Detective:** {r.question}")
         out.append(f"> **Suspect:** {r.dialogue or '(no reply: ' + str(r.error) + ')'}")
-        out.append(f"Declared: {', '.join(r.accepted) or 'nothing'}")
+        learned = ", ".join(f + (" (matched)" if f in r.inferred else "") for f in r.accepted)
+        out.append(f"Learned: {learned or 'nothing'}")
+        if r.unsupported:
+            out.append(f"Declared but not said: {', '.join(r.unsupported)}")
         if r.flags:
             details = [*r.lie_breaks, *r.invented_times, *r.prompt_breaks, *r.invented_ids]
             out.append(
