@@ -37,6 +37,25 @@ npm run build          # type check + production build into dist/
 
 CI runs all of these on every pull request that touches `frontend/` or `backend/` (`.github/workflows/frontend.yml`).
 
+## Browser test
+
+`e2e/case.spec.ts` plays CASE #001 from the cover to a 100/100 accusation in Chromium. It covers asking, searching, a reload that resumes the game, catching Victoria's three lies, a hint and the accusation, and it fails on any console error. Playwright starts its own game server with the mock AI and a dev server, on ports 8765 and 5199, so a game you have open on 8000 and 5173 is left alone and no model is needed. Games from the test stay in memory and never reach `backend/games.sqlite3`.
+
+The first time, download the browser:
+
+```bash
+cd frontend
+npx playwright install chromium
+```
+
+Then run it whenever you like:
+
+```bash
+npm run e2e
+```
+
+CI runs it as its own job, and on a failure it uploads a report with a trace and a screenshot (`playwright-report`).
+
 ## API types
 
 `src/api/schema.d.ts` is generated from the backend's OpenAPI schema, so the TypeScript types always match what the server sends. After changing anything in `backend/src/casefile/api/`:

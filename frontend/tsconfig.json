@@ -17,5 +17,12 @@
     "noEmit": true,
     "jsx": "preserve"
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "vite.config.ts", "eslint.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "e2e/**/*.ts",
+    "vite.config.ts",
+    "playwright.config.ts",
+    "eslint.config.ts"
+  ]
 }

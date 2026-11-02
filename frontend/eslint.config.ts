@@ -2,7 +2,7 @@ import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescri
 import pluginVue from "eslint-plugin-vue";
 
 export default defineConfigWithVueTs(
-  { ignores: ["dist/**", "src/api/schema.d.ts"] },
+  { ignores: ["dist/**", "src/api/schema.d.ts", "playwright-report/**", "test-results/**"] },
   pluginVue.configs["flat/recommended"],
   vueTsConfigs.recommendedTypeChecked,
   {

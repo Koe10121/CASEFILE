@@ -24,3 +24,7 @@ backend/eval-results/
 
 # Saved games (D53)
 backend/games.sqlite3*
+
+# Browser test output
+frontend/playwright-report/
+frontend/test-results/
