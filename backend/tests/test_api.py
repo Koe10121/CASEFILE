@@ -13,7 +13,7 @@ from httpx2 import Response
 from casefile.ai.contract import Exchange, NpcReply, NpcTurn, ProviderError, Usage
 from casefile.ai.mock import MockNpc
 from casefile.ai.provider import NpcProvider
-from casefile.api.app import create_app, main
+from casefile.api.app import Limits, create_app, main
 from casefile.api.portraits import Portraits
 from casefile.api.saves import SaveFile
 from casefile.api.store import GameBusyError, GameNotFoundError, GameStore, StoreFullError
@@ -51,6 +51,8 @@ def make_client(
     max_games: int = 10,
     saves: SaveFile | None = None,
     portraits: Portraits | None = None,
+    limits: Limits | None = None,
+    web: Path | None = None,
 ) -> TestClient:
     app = create_app(
         Engine(blackwood),
@@ -61,6 +63,8 @@ def make_client(
         idle_ttl_s=3600,
         saves=saves,
         portraits=portraits,
+        limits=limits,
+        web=web,
     )
     return TestClient(app)
 

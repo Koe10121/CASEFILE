@@ -1,0 +1,15 @@
+.git
+**/node_modules
+**/.venv
+**/__pycache__
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
+frontend/dist
+frontend/playwright-report
+frontend/test-results
+frontend/*.png
+backend/games.sqlite3*
+backend/eval-results
+backend/.env
+.env

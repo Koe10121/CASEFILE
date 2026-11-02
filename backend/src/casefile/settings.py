@@ -54,7 +54,18 @@ class Settings(BaseSettings):
     keep_saves_days: float = Field(default=30, gt=0)
     """A saved game nobody has played for this long is deleted."""
 
-    @field_validator("save_file", mode="before")
+    new_games_per_hour: int = Field(default=30, gt=0)
+    """Rate limit per visitor (D57): games started in any hour."""
+    moves_per_minute: int = Field(default=120, gt=0)
+    """Rate limit per visitor (D57): moves (talk, ask, search, show, hint, accuse) in
+    any minute, across all their games. A player rarely makes more than a few."""
+    behind_proxy: bool = False
+    """Set on a host that puts a proxy in front (Render, Fly, Hugging Face), so the
+    rate limits see the visitor's address instead of the proxy's."""
+    web_dir: Path | None = None
+    """Serve the built web game from here too (``--web``). The Docker image sets it."""
+
+    @field_validator("save_file", "web_dir", mode="before")
     @classmethod
     def _empty_means_none(cls, value: object) -> object:
         return None if value == "" else value
