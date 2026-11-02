@@ -53,7 +53,11 @@ Invoke-RestMethod -Method Post "http://127.0.0.1:8000/api/games/$($game.id)/talk
 | `POST /api/games/{id}/hint` | no body: the next hint, if the difficulty allows one now (D54) |
 | `POST /api/games/{id}/accuse` | `{"accusation": {"culprit", "motive", "method", "evidence": [...]}}`: final |
 
-Each action returns `line` (what the suspect said, if anything), `events` (what happened) and `game` (the whole player view). Errors are `{"detail": "..."}`: 404 unknown or expired game, 409 an illegal move or a request while the last one is still running, 422 a malformed request, 429 the token budget is spent, 502 the model didn't answer (nothing changed), 503 the server is full. Games are saved to `backend/games.sqlite3` after every move, so a game survives a server restart and is kept for 30 days after it was last played (D53). Set `CASEFILE_SAVE_FILE=` (empty) to keep games in memory only.
+Each action returns `line` (what the suspect said, if anything), `events` (what happened) and `game` (the whole player view). Errors are `{"detail": "..."}`: 404 unknown or expired game, 409 an illegal move or a request while the last one is still running, 422 a malformed request, 429 the token budget is spent or too many requests from one visitor (with `Retry-After`), 502 the model didn't answer (nothing changed), 503 the server is full. Games are saved to `backend/games.sqlite3` after every move, so a game survives a server restart and is kept for 30 days after it was last played (D53). Set `CASEFILE_SAVE_FILE=` (empty) to keep games in memory only.
+
+Each visitor may start 30 games an hour and make 120 moves a minute (`CASEFILE_NEW_GAMES_PER_HOUR`, `CASEFILE_MOVES_PER_MINUTE`; D57). Reading a game is never limited.
+
+`uv run casefile-api --web ../frontend/dist` also serves the built web game (`npm run build` first), so one server and one address is the whole game. That is how the Docker image runs it; see [`docs/deploy.md`](../docs/deploy.md).
 
 `uv run casefile-api --openapi ../frontend/openapi.json` writes the API schema that the frontend's TypeScript types are generated from (see [`frontend/README.md`](../frontend/README.md#api-types)).
 
@@ -119,6 +123,8 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 | `src/casefile/api/views.py` | The spoiler boundary: game state to player view (D44) |
 | `src/casefile/api/store.py` | `GameStore`: recent games in memory, one lock per game, idle expiry (D46), saving and loading (D53) |
 | `src/casefile/api/saves.py` | `SaveFile`: saved games in SQLite, as their replayable log (D53) |
+| `src/casefile/api/limits.py` | `RateLimiter`: requests per visitor in a sliding window (D57) |
+| `src/casefile/api/web.py` | `WebGame`: serves the built web game, with `index.html` for any page path (D57) |
 | `tests/test_blackwood_loads.py` | The real CASE #001 loads, round-trips losslessly and is immutable |
 | `tests/test_schema_rejects.py` | One test per schema rule, each breaking exactly one thing in the real case |
 | `tests/test_conditions.py` | Condition evaluation on a hand-built state |

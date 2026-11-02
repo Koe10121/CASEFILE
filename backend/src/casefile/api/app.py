@@ -3,6 +3,7 @@
     uv run casefile-api                  # http://127.0.0.1:8000, a local model (Ollama): free
     uv run casefile-api --ai mock        # scripted suspects: no setup at all
     uv run casefile-api --openapi ../frontend/openapi.json   # write the API schema
+    uv run casefile-api --web ../frontend/dist   # also serve the built web game (D57)
 
 Interactive docs at ``/docs``. Every action answers with what the suspect said, what
 happened, and the whole game as the player now sees it, so the browser never has to
@@ -11,11 +12,12 @@ work out game state for itself: the backend owns the truth.
 
 import argparse
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import cast, get_args
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 
 from casefile.ai.contract import ProviderError
@@ -29,6 +31,7 @@ from casefile.expressions import Expression
 from casefile.session import BudgetExhaustedError, GameSession, Reply
 from casefile.settings import Ai, Settings
 
+from .limits import RateLimitedError, RateLimiter
 from .portraits import Portraits, find_portraits
 from .saves import SaveFile
 from .schemas import (
@@ -45,10 +48,19 @@ from .schemas import (
 )
 from .store import GameBusyError, GameNotFoundError, GameStore, StoredGame, StoreFullError
 from .views import case_view, difficulty_help, events_view, game_view, line_view
+from .web import WebGame
 
 _ERRORS: dict[int | str, dict[str, object]] = {
     code: {"model": ErrorOut} for code in (404, 409, 429, 502, 503)
 }
+
+
+@dataclass(frozen=True, slots=True)
+class Limits:
+    """Rate limits per visitor (D57): new games, and moves in any game."""
+
+    new_games: RateLimiter
+    actions: RateLimiter
 
 
 def create_app(
@@ -61,6 +73,8 @@ def create_app(
     idle_ttl_s: float,
     saves: SaveFile | None = None,
     portraits: Portraits | None = None,
+    limits: Limits | None = None,
+    web: Path | None = None,
 ) -> FastAPI:
     app = FastAPI(title="CASEFILE", version="0.1.0", responses=_ERRORS)
     store = GameStore(
@@ -85,6 +99,21 @@ def create_app(
             game=game_view(game_id, game.difficulty, game.session),
         )
 
+    def visitor(request: Request) -> str:
+        # Behind a proxy, uvicorn's proxy headers make this the visitor, not the proxy.
+        return request.client.host if request.client else "unknown"
+
+    def new_game_limit(request: Request) -> None:
+        if limits is not None:
+            limits.new_games.hit(visitor(request))
+
+    def action_limit(request: Request) -> None:
+        if limits is not None:
+            limits.actions.hit(visitor(request))
+
+    limit_new_games = [Depends(new_game_limit)]
+    limit_actions = [Depends(action_limit)]
+
     # Plain ``def`` handlers: FastAPI runs them in a worker thread, so a slow model
     # reply in one game doesn't block requests for the others.
 
@@ -104,7 +133,7 @@ def create_app(
     def get_case() -> CaseOut:
         return case
 
-    @app.post("/api/games", status_code=201)
+    @app.post("/api/games", status_code=201, dependencies=limit_new_games)
     def new_game(body: NewGame) -> GameOut:
         game_id = store.create(body.difficulty, body.detective)
         with store.use(game_id) as game:
@@ -115,32 +144,32 @@ def create_app(
         with store.use(game_id) as game:
             return game_view(game_id, game.difficulty, game.session)
 
-    @app.post("/api/games/{game_id}/talk")
+    @app.post("/api/games/{game_id}/talk", dependencies=limit_actions)
     def talk(game_id: str, body: TalkRequest) -> ActionOut:
         with store.use(game_id) as game:
             return action(game_id, game, game.session.talk_to(body.suspect))
 
-    @app.post("/api/games/{game_id}/ask")
+    @app.post("/api/games/{game_id}/ask", dependencies=limit_actions)
     def ask(game_id: str, body: AskRequest) -> ActionOut:
         with store.use(game_id) as game:
             return action(game_id, game, game.session.ask(body.text))
 
-    @app.post("/api/games/{game_id}/search")
+    @app.post("/api/games/{game_id}/search", dependencies=limit_actions)
     def search(game_id: str, body: SearchRequest) -> ActionOut:
         with store.use(game_id) as game:
             return action(game_id, game, game.session.search(body.location))
 
-    @app.post("/api/games/{game_id}/show")
+    @app.post("/api/games/{game_id}/show", dependencies=limit_actions)
     def show(game_id: str, body: ShowRequest) -> ActionOut:
         with store.use(game_id) as game:
             return action(game_id, game, game.session.show(body.evidence), caught=True)
 
-    @app.post("/api/games/{game_id}/accuse")
+    @app.post("/api/games/{game_id}/accuse", dependencies=limit_actions)
     def accuse(game_id: str, body: AccuseRequest) -> ActionOut:
         with store.use(game_id) as game:
             return action(game_id, game, game.session.accuse(body.accusation))
 
-    @app.post("/api/games/{game_id}/hint")
+    @app.post("/api/games/{game_id}/hint", dependencies=limit_actions)
     def hint(game_id: str) -> ActionOut:
         """The next nudge, if the difficulty allows one now (D54). It arrives in
         ``game.hints.given``; nothing else in the game changes."""
@@ -181,6 +210,15 @@ def create_app(
     def full(_: Request, exc: StoreFullError) -> JSONResponse:
         return error(503, str(exc))
 
+    @app.exception_handler(RateLimitedError)
+    def limited(_: Request, exc: RateLimitedError) -> JSONResponse:
+        response = error(429, str(exc))
+        response.headers["Retry-After"] = str(exc.retry_after_s)
+        return response
+
+    if web is not None:
+        # Last, so every /api route above wins over the catch-all page.
+        app.mount("/", WebGame(directory=web), name="web")
     return app
 
 
@@ -193,9 +231,18 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--openapi", type=Path, metavar="FILE", help="write the OpenAPI schema to FILE and exit"
     )
+    parser.add_argument(
+        "--web",
+        type=Path,
+        default=settings.web_dir,
+        metavar="DIR",
+        help="also serve the built web game from DIR (frontend/dist)",
+    )
     args = parser.parse_args(argv)
     if args.openapi is not None:
         args.ai = "mock"  # the schema is the same whoever plays the suspects
+    if args.web is not None and not (args.web / "index.html").is_file():
+        parser.error(f"--web {args.web}: no index.html there; run `npm run build` in frontend/")
     problem = setup_problem(args.ai, settings)
     if problem is not None:
         parser.error(problem)
@@ -217,9 +264,22 @@ def main(argv: list[str] | None = None) -> None:
         portraits=find_portraits(
             DEFAULT_CASE / "portraits", (c.id for c in engine.index.bundle.case.characters)
         ),
+        limits=Limits(
+            new_games=RateLimiter(settings.new_games_per_hour, 3600),
+            actions=RateLimiter(settings.moves_per_minute, 60),
+        ),
+        web=args.web,
     )
     if args.openapi is not None:
         # Written as UTF-8 by Python, not piped: PowerShell 5 redirects as UTF-16.
         args.openapi.write_text(json.dumps(app.openapi(), indent=2) + "\n", encoding="utf-8")
         return
-    uvicorn.run(app, host=args.host, port=args.port)
+    uvicorn.run(
+        app,
+        host=args.host,
+        port=args.port,
+        # Trust X-Forwarded-For only when a proxy in front sets it; otherwise anyone
+        # could pick their own address and dodge the rate limits.
+        proxy_headers=settings.behind_proxy,
+        forwarded_allow_ips="*" if settings.behind_proxy else None,
+    )

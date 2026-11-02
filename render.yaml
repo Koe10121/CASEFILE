@@ -1,0 +1,21 @@
+# Render Blueprint for the public game (D57). In Render: New > Blueprint, pick this
+# repository, and Apply. Render builds the Dockerfile and redeploys on every push to main.
+services:
+  - type: web
+    name: casefile
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/case
+    autoDeploy: true
+    envVars:
+      # Scripted suspects until players can bring their own Claude key (next step).
+      - key: CASEFILE_AI
+        value: mock
+      # Render's free disk is wiped on every deploy and restart, so saved games last
+      # until then. Fine for a demo; a paid disk would keep them.
+      - key: CASEFILE_SAVE_FILE
+        value: /app/data/games.sqlite3
+      - key: CASEFILE_BEHIND_PROXY
+        value: "true"
