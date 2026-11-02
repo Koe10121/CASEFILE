@@ -16,7 +16,7 @@ On Windows PowerShell, use two windows:
 
 ```powershell
 cd C:\Users\User\CASEFILE\backend
-uv run casefile-api --ai ollama
+uv run casefile-api
 ```
 
 ```powershell

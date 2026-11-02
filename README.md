@@ -9,7 +9,7 @@ Status: Milestones 1 (case design), 2 (backend engine) and 4 (AI suspects) are d
 You need [uv](https://docs.astral.sh/uv/) and [Node.js](https://nodejs.org) 22 or later. Run two terminals from the repository root:
 
 ```bash
-cd backend && uv run casefile-api            # the game server; add --ai ollama for a free local model
+cd backend && uv run casefile-api            # the game server; suspects run on Ollama (free), or add --ai mock
 cd frontend && npm install && npm run dev    # then open http://localhost:5173
 ```
 

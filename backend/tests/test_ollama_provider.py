@@ -7,6 +7,7 @@ import httpx2
 import pytest
 
 from casefile.ai.contract import Exchange, ProviderError
+from casefile.ai.factory import make_provider
 from casefile.ai.ollama import OllamaNpc
 from casefile.ai.prompt import REPLY_SCHEMA
 from casefile.case import CaseBundle
@@ -104,3 +105,32 @@ def test_ollama_not_running(richard: SuspectBriefing) -> None:
     npc, _ = npc_answering(refuse)
     with pytest.raises(ProviderError, match="is Ollama running"):
         npc.respond(richard, (), "hi")
+
+
+def test_a_local_model_gets_the_larger_free_budget() -> None:
+    settings = Settings(session_token_budget=400_000, local_session_token_budget=2_000_000)
+    _, budget = make_provider("ollama", settings)
+    assert budget == 2_000_000
+
+
+def npc_with_tags(handler: Callable[[httpx2.Request], httpx2.Response]) -> OllamaNpc:
+    client = httpx2.Client(base_url="http://ollama.test", transport=httpx2.MockTransport(handler))
+    return OllamaNpc(Settings(ollama_model="llama3.1:8b"), client)
+
+
+def test_startup_check_passes_when_the_model_is_pulled() -> None:
+    npc = npc_with_tags(ok({"models": [{"name": "llama3.1:8b"}, {"name": "gemma3:12b"}]}))
+    assert npc.problem() is None
+
+
+def test_startup_check_explains_what_to_fix() -> None:
+    missing = npc_with_tags(ok({"models": [{"name": "gemma3:12b"}]})).problem()
+    assert missing == "Ollama doesn't have llama3.1:8b yet. Run: ollama pull llama3.1:8b"
+
+    def refuse(_: httpx2.Request) -> httpx2.Response:
+        raise httpx2.ConnectError("connection refused")
+
+    down = npc_with_tags(refuse).problem()
+    assert down is not None
+    assert "Ollama isn't answering" in down
+    assert "--ai mock" in down

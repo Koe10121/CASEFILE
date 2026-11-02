@@ -42,12 +42,41 @@ class _ChatResponse(BaseModel):
     eval_count: int = 0
 
 
+class _Model(BaseModel):
+    name: str
+
+
+class _Tags(BaseModel):
+    """The fields of Ollama's ``/api/tags`` reply (installed models) that we use."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    models: list[_Model]
+
+
 class OllamaNpc:
     def __init__(self, settings: Settings, client: httpx2.Client | None = None) -> None:
         self._settings = settings
         self._client = client or httpx2.Client(
             base_url=settings.ollama_url, timeout=settings.request_timeout_s
         )
+
+    def problem(self) -> str | None:
+        """Why this provider can't play right now, or ``None``. Checked once at startup,
+        so a missing Ollama fails with instructions instead of on the first question."""
+        model = self._settings.ollama_model
+        try:
+            response = self._client.get("/api/tags", timeout=5)
+            response.raise_for_status()
+            installed = {m.name for m in _Tags.model_validate_json(response.content).models}
+        except (httpx2.HTTPError, ValidationError):
+            return (
+                f"Ollama isn't answering at {self._settings.ollama_url}. Start the Ollama app "
+                "(or run `ollama serve`), or play with scripted suspects: --ai mock"
+            )
+        if model not in installed and f"{model}:latest" not in installed:
+            return f"Ollama doesn't have {model} yet. Run: ollama pull {model}"
+        return None
 
     def respond(
         self, briefing: SuspectBriefing, history: Sequence[Exchange], player_text: str

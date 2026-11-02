@@ -7,12 +7,14 @@ import CaseSidebar from "../components/CaseSidebar.vue";
 import CaseTabs from "../components/CaseTabs.vue";
 import InterviewRoom from "../components/InterviewRoom.vue";
 import ResultsPanel from "../components/ResultsPanel.vue";
+import { questionsLeft } from "../game/budget";
 import { forgetGame } from "../game/lastGame";
 import { useGame } from "../game/useGame";
 
 const props = defineProps<{ id: string }>();
 const { cover, game, busy, error, lost, feed, fresh, suspect, load, act } = useGame(props.id);
 const accusing = ref(false);
+const left = computed(() => (game.value ? questionsLeft(game.value) : null));
 
 onMounted(load);
 
@@ -55,9 +57,13 @@ watch(
         {{ cover?.title ?? "CASEFILE" }}
       </RouterLink>
       <div class="flex items-center gap-4">
-        <p v-if="game?.tokens.budget" class="font-mono text-xs text-night-500">
-          {{ Math.round((100 * game.tokens.used) / game.tokens.budget) }}% of this game's AI budget
-          used
+        <p
+          v-if="left !== null"
+          class="font-mono text-xs"
+          :class="left < 15 ? 'text-alarm-400' : 'text-night-500'"
+          title="Each game has a cap on AI work. It's a safety limit, not a cost: on a local model it is free."
+        >
+          About {{ left }} questions left
         </p>
         <button
           v-if="game && !game.over && !accusing"

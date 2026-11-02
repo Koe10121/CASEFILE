@@ -1,7 +1,7 @@
 """A terminal front end for playing a case.
 
-    uv run casefile                      # CASE #001 with scripted suspects: no setup
-    uv run casefile --ai ollama          # a local model plays them: free, needs Ollama
+    uv run casefile                      # a local model plays the suspects: free, needs Ollama
+    uv run casefile --ai mock            # scripted suspects: no setup at all
     uv run casefile --ai claude          # Claude plays them: needs ANTHROPIC_API_KEY
     uv run casefile path/to/case-folder
 
@@ -18,7 +18,7 @@ from typing import TextIO, get_args
 from pydantic import ValidationError
 
 from casefile.ai.contract import ProviderError
-from casefile.ai.factory import make_provider
+from casefile.ai.factory import make_provider, setup_problem
 from casefile.case.ids import CharacterId, EvidenceId, LocationId
 from casefile.case.validation import load_valid_case
 from casefile.engine.engine import Engine, IllegalActionError
@@ -179,8 +179,9 @@ def main(argv: list[str] | None = None) -> None:
         help="who plays the suspects (default: %(default)s)",
     )
     args = parser.parse_args(argv)
-    if args.ai == "claude" and settings.anthropic_api_key is None:
-        parser.error("--ai claude needs ANTHROPIC_API_KEY (see backend/.env.example)")
+    problem = setup_problem(args.ai, settings)
+    if problem is not None:
+        parser.error(problem)
     engine = Engine(load_valid_case(args.case))
     session = GameSession(engine, *make_provider(args.ai, settings))
     Cli(session, sys.stdout).run(_prompted_lines())

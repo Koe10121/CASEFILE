@@ -6,8 +6,8 @@ The game engine, the AI layer and the HTTP API for the web game. Python 3.12+, m
 
 ```bash
 cd backend
-uv run casefile               # CASE #001 in the terminal, scripted suspects, no setup
-uv run casefile --ai ollama   # a local model plays the suspects: free
+uv run casefile               # CASE #001 in the terminal; a local model (Ollama) plays the suspects: free
+uv run casefile --ai mock     # scripted suspects: no setup at all
 uv run casefile --ai claude   # Claude plays the suspects: pay as you go
 ```
 
@@ -17,20 +17,20 @@ Type `help` for commands. Try `talk S_RICHARD`, `ask where were you tonight?`, `
 
 **Claude.** Copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY` (from console.anthropic.com). `.env` is git-ignored.
 
-Either way, a session stops after `CASEFILE_SESSION_TOKEN_BUDGET` model tokens, 400,000 by default. Every setting is listed in `.env.example`; `CASEFILE_AI=ollama` makes the local model the default.
+Either way, a game stops taking questions after a token budget: 400,000 on Claude (`CASEFILE_SESSION_TOKEN_BUDGET`, a cost cap) and 2,000,000 on a local model (`CASEFILE_LOCAL_SESSION_TOKEN_BUDGET`, free, but still capped so a runaway session ends). Each question re-sends the suspect's briefing, about 3–5k tokens. Every setting is listed in `.env.example`; Ollama is the default (`CASEFILE_AI`); if it isn't running or the model isn't pulled, the game says so at startup and suggests `--ai mock`.
 
 ## Serve the API
 
 ```bash
-uv run casefile-api                # http://127.0.0.1:8000, scripted suspects
-uv run casefile-api --ai ollama    # a local model plays them: free
+uv run casefile-api                # http://127.0.0.1:8000; a local model (Ollama) plays the suspects
+uv run casefile-api --ai mock      # scripted suspects: no setup at all
 ```
 
 Open http://127.0.0.1:8000/docs to try every endpoint in the browser. On Windows PowerShell, start the server in one window:
 
 ```powershell
 cd C:\Users\User\CASEFILE\backend
-uv run casefile-api --ai ollama
+uv run casefile-api
 ```
 
 and talk to it from a second window:

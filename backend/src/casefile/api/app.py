@@ -1,7 +1,7 @@
 """The HTTP API: a thin JSON layer over ``GameSession`` (D43).
 
-    uv run casefile-api                  # http://127.0.0.1:8000, scripted suspects
-    uv run casefile-api --ai ollama      # a local model plays them: free
+    uv run casefile-api                  # http://127.0.0.1:8000, a local model (Ollama): free
+    uv run casefile-api --ai mock        # scripted suspects: no setup at all
     uv run casefile-api --openapi ../frontend/openapi.json   # write the API schema
 
 Interactive docs at ``/docs``. Every action answers with what the suspect said, what
@@ -19,7 +19,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from casefile.ai.contract import ProviderError
-from casefile.ai.factory import make_provider
+from casefile.ai.factory import make_provider, setup_problem
 from casefile.ai.provider import NpcProvider
 from casefile.case.validation import load_valid_case
 from casefile.cli import DEFAULT_CASE
@@ -161,8 +161,9 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     if args.openapi is not None:
         args.ai = "mock"  # the schema is the same whoever plays the suspects
-    if args.ai == "claude" and settings.anthropic_api_key is None:
-        parser.error("--ai claude needs ANTHROPIC_API_KEY (see backend/.env.example)")
+    problem = setup_problem(args.ai, settings)
+    if problem is not None:
+        parser.error(problem)
     provider, budget = make_provider(args.ai, settings)
     app = create_app(
         Engine(load_valid_case(DEFAULT_CASE)),
