@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | 1 | Design CASE #001 and the case data model | Done |
 | 2 | Backend engine: Pydantic models, validator as pytest, engine core, Richard end-to-end in mock AI mode | Done |
-| 3 | Frontend: HTTP API, then the Vue 3 web game | In progress: the HTTP API (D43–D46) and the Vue + Vite app (D47–D48) are playable end to end, from the cover to the results. Suspects react when caught (D52), and games are saved and resume after a restart (D53). Hints and the Easy evidence picker are in (D54). Portraits change with each suspect's mood (D55); the art itself is made with the guide in `docs/art/portraits.md`. Next: the portrait art, an end-to-end browser test, and the public deploy |
+| 3 | Frontend: HTTP API, then the Vue 3 web game | Done: the HTTP API (D43–D46) and the Vue + Vite game (D47–D48) are playable from the cover to the results, with caught suspects reacting (D52), save and resume (D53), hints and the Easy evidence picker (D54), and painted-noir portraits that change with each suspect's mood (D55, art in `cases/blackwood_manor/portraits/`) |
 | 4 | AI integration: all four suspects | Done: Claude and free Ollama providers, eval harness, grounding and confession guard. See [ai-evals.md](ai-evals.md) |
-| 5 | Full investigation experience: save/resume, accusation, scoring | |
-| 6 | Eval harness, testing and deployment | |
+| 5 | Full investigation experience: save/resume, accusation, scoring | Done, delivered with Milestones 2 and 3: scoring (D29), accusation and results, save and resume (D53) |
+| 6 | Eval harness, testing and deployment | Next. The eval harness is done (Milestone 4). Left: an end-to-end browser test in CI, then the public deploy (players bring their own Claude key, rate limits, per-game budgets) |
