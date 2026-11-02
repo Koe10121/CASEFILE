@@ -27,6 +27,7 @@ from casefile.engine.engine import Engine, IllegalActionError, Outcome
 from casefile.session import BudgetExhaustedError, GameSession, Reply
 from casefile.settings import Ai, Settings
 
+from .saves import SaveFile
 from .schemas import (
     AccuseRequest,
     ActionOut,
@@ -55,10 +56,13 @@ def create_app(
     token_budget: int | None,
     max_games: int,
     idle_ttl_s: float,
+    saves: SaveFile | None = None,
 ) -> FastAPI:
     app = FastAPI(title="CASEFILE", version="0.1.0", responses=_ERRORS)
     store = GameStore(
         lambda detective: GameSession(engine, provider, token_budget, detective),
+        lambda saved: GameSession.resume(engine, provider, token_budget, saved),
+        saves=saves,
         max_games=max_games,
         idle_ttl_s=idle_ttl_s,
     )
@@ -165,13 +169,20 @@ def main(argv: list[str] | None = None) -> None:
     if problem is not None:
         parser.error(problem)
     provider, budget = make_provider(args.ai, settings)
+    engine = Engine(load_valid_case(DEFAULT_CASE))
+    saves = None
+    if args.openapi is None and settings.save_file is not None:
+        saves = SaveFile(
+            settings.save_file, engine.index.bundle.case.case_id, keep_days=settings.keep_saves_days
+        )
     app = create_app(
-        Engine(load_valid_case(DEFAULT_CASE)),
+        engine,
         provider,
         ai=args.ai,
         token_budget=budget,
         max_games=settings.max_games,
         idle_ttl_s=settings.game_idle_minutes * 60,
+        saves=saves,
     )
     if args.openapi is not None:
         # Written as UTF-8 by Python, not piped: PowerShell 5 redirects as UTF-16.

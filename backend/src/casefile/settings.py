@@ -4,13 +4,16 @@ Secrets live only in the environment or ``.env`` (which git ignores); see
 ``.env.example`` for every setting.
 """
 
+from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Effort = Literal["low", "medium", "high", "xhigh", "max"]
 Ai = Literal["mock", "ollama", "claude"]
+
+BACKEND = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
@@ -44,4 +47,14 @@ class Settings(BaseSettings):
     max_games: int = Field(default=200, gt=0)
     """Games the API server holds in memory at once. A new game past this is refused."""
     game_idle_minutes: float = Field(default=120, gt=0)
-    """The API server forgets a game nobody has touched for this long."""
+    """The API server drops a game from memory after this long untouched. A saved game
+    is loaded again from ``save_file`` the next time it is played."""
+    save_file: Path | None = BACKEND / "games.sqlite3"
+    """Where the API server saves games (D53). Set it empty to keep games in memory only."""
+    keep_saves_days: float = Field(default=30, gt=0)
+    """A saved game nobody has played for this long is deleted."""
+
+    @field_validator("save_file", mode="before")
+    @classmethod
+    def _empty_means_none(cls, value: object) -> object:
+        return None if value == "" else value

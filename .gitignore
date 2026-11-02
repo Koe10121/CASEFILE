@@ -21,3 +21,6 @@ build/
 
 # Eval reports (transcripts of local runs)
 backend/eval-results/
+
+# Saved games (D53)
+backend/games.sqlite3*
