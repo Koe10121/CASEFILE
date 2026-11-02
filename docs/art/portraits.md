@@ -70,3 +70,23 @@ cases/blackwood_manor/portraits/S_ARTHUR/neutral.webp
 ```
 
 `.png` and `.jpg` work too, but `.webp` keeps the repository small. Restart `casefile-api` afterwards, because it looks for portraits when it starts. The cover and the interview will then show them.
+
+## How the CASE #001 set was made
+
+The committed portraits were made with ComfyUI instead of Fooocus. Claude ran it on Kole's PC, with no custom nodes. To redo or extend the set, follow this recipe.
+
+| Setting | Value |
+| --- | --- |
+| Tool | ComfyUI portable (NVIDIA), driven through its HTTP API |
+| Model | SDXL base 1.0 (`sd_xl_base_1.0.safetensors`) |
+| Neutral faces | txt2img, 896×1152, 30 steps, CFG 6, dpmpp_2m karras, 4 candidates per character, Kole picked one |
+| Other expressions | img2img from the picked neutral, denoise 0.6, same prompt with only the expression line changed |
+| Seeds | Neutrals: Victoria 1033, Richard 2044, Eleanor 3033, Thomas 4044, Arthur 5011. Expressions: neutral seed + 100, 200, 300, 400, 500 for guarded, angry, afraid, sad, shaken. Four replacements were needed to remove painted-in signatures: Eleanor shaken 3536, Richard guarded 2146, Richard shaken 2545, Victoria afraid 1335 |
+| Output | WebP, 768×1024, quality 85 |
+| Time | About 13–14 s per image on an RTX 5070 Laptop GPU (8 GB) |
+
+Lessons from making the set:
+
+- **Use a new seed for each img2img expression.** Reusing the neutral's seed gives near-identical, overcooked images.
+- **Denoise 0.6 is the ceiling.** Below 0.6 the expression barely changes, and above it the face drifts. Guarded, angry and sad read clearly. Afraid and shaken are subtle. Stronger emotion would need face-aware tools (IP-Adapter, FaceSwap or an inpaint mask), which mean extra nodes or models.
+- **Check the corners.** SDXL sometimes paints a fake artist's signature, so regenerate any image that has one.
