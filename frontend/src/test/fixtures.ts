@@ -28,6 +28,7 @@ export function makeGame(overrides: Partial<Game> = {}): Game {
     statements: [],
     interviews: {},
     tokens: { used: 0, budget: null },
+    hints: { given: [], left: 0, ready_at: null },
     result: null,
     ...overrides,
   };

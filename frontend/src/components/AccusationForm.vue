@@ -19,6 +19,9 @@ const method = ref("");
 const cited = ref<string[]>([]);
 const sure = ref(false);
 
+// On Easy the server marks which held items matter, and only those are offered (D54).
+const choices = computed(() => props.evidence.filter((e) => e.relevant !== false));
+const narrowed = computed(() => choices.value.length < props.evidence.length);
 const full = computed(() => cited.value.length >= props.options.max_evidence);
 const ready = computed(
   () => !!culprit.value && !!motive.value && !!method.value && sure.value && !props.busy,
@@ -117,10 +120,11 @@ function submit(): void {
       </legend>
       <p class="mb-2 text-sm text-paper-300">
         Cite up to {{ options.max_evidence }} items that prove your case.
+        <template v-if="narrowed">On Easy, only the items that matter are listed.</template>
       </p>
       <div class="space-y-1">
         <label
-          v-for="e in evidence"
+          v-for="e in choices"
           :key="e.id"
           class="flex items-center gap-2 rounded px-2 py-1 text-sm"
           :class="full && !cited.includes(e.id) ? 'opacity-40' : 'cursor-pointer'"

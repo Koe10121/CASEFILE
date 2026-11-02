@@ -41,7 +41,7 @@ from .schemas import (
     TalkRequest,
 )
 from .store import GameBusyError, GameNotFoundError, GameStore, StoredGame, StoreFullError
-from .views import case_view, events_view, game_view, line_view
+from .views import case_view, difficulty_help, events_view, game_view, line_view
 
 _ERRORS: dict[int | str, dict[str, object]] = {
     code: {"model": ErrorOut} for code in (404, 409, 429, 502, 503)
@@ -118,6 +118,16 @@ def create_app(
     def accuse(game_id: str, body: AccuseRequest) -> ActionOut:
         with store.use(game_id) as game:
             return action(game_id, game, game.session.accuse(body.accusation))
+
+    @app.post("/api/games/{game_id}/hint")
+    def hint(game_id: str) -> ActionOut:
+        """The next nudge, if the difficulty allows one now (D54). It arrives in
+        ``game.hints.given``; nothing else in the game changes."""
+        with store.use(game_id) as game:
+            game.session.hint(difficulty_help(engine, game.difficulty).hints)
+            return ActionOut(
+                line=None, events=(), game=game_view(game_id, game.difficulty, game.session)
+            )
 
     # Errors keep one shape, ``{"detail": "..."}``, like FastAPI's own. The order of
     # these doesn't matter: Starlette picks the most specific class.

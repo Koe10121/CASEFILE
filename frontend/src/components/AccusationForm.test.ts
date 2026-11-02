@@ -11,9 +11,10 @@ const item = (id: string): Evidence => ({
   summary: "",
   text: null,
   reads: [],
+  relevant: null,
 });
 
-function form() {
+function form(evidence: Evidence[] = [item("E01"), item("E02"), item("E03")]) {
   return mount(AccusationForm, {
     props: {
       options: {
@@ -24,7 +25,7 @@ function form() {
       },
       victim: "Arthur Blackwood",
       names: { S_RICHARD: "Richard Okafor", S_VICTORIA: "Victoria Shaw" },
-      evidence: [item("E01"), item("E02"), item("E03")],
+      evidence,
       busy: false,
     },
   });
@@ -54,5 +55,15 @@ describe("AccusationForm", () => {
     await wrapper.get('input[value="E02"]').setValue(true);
     expect(wrapper.get('input[value="E03"]').attributes("disabled")).toBeDefined();
     expect(wrapper.text()).toContain("Evidence (2/2)");
+  });
+
+  it("lists only relevant items when the server marks them (Easy)", () => {
+    const wrapper = form([
+      { ...item("E01"), relevant: true },
+      { ...item("E02"), relevant: false },
+    ]);
+    expect(wrapper.find('input[value="E01"]').exists()).toBe(true);
+    expect(wrapper.find('input[value="E02"]').exists()).toBe(false);
+    expect(wrapper.text()).toContain("only the items that matter");
   });
 });

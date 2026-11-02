@@ -60,6 +60,7 @@ CI regenerates both files and fails if they differ from what is committed, so th
 | `src/composables/useTypewriter.ts` | Types out a suspect's finished line (D45); respects reduced motion; click to skip        |
 | `src/views/CoverView.vue`          | The case cover: intro, detective, people, difficulty, start                              |
 | `src/views/GameView.vue`           | The investigation: suspects and places, the interview, events and evidence               |
+| `src/components/HintBox.vue`       | Hints given so far and the "I'm stuck" button, with the Easy countdown (D54)             |
 | `src/components/InterviewRoom.vue` | The transcript, the question box (Enter to ask) and "show evidence"                      |
 | `src/components/CaseSidebar.vue`   | Suspects to interview and places to search                                               |
 | `src/components/EventFeed.vue`     | What the last actions caused: facts learned, lies on record and caught                   |

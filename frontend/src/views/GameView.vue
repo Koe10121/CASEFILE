@@ -5,6 +5,7 @@ import type { Accusation } from "../api/types";
 import AccusationForm from "../components/AccusationForm.vue";
 import CaseSidebar from "../components/CaseSidebar.vue";
 import CaseTabs from "../components/CaseTabs.vue";
+import HintBox from "../components/HintBox.vue";
 import InterviewRoom from "../components/InterviewRoom.vue";
 import ResultsPanel from "../components/ResultsPanel.vue";
 import { questionsLeft } from "../game/budget";
@@ -119,16 +120,24 @@ watch(
 
       <div v-else class="mt-4 grid flex-1 gap-6 lg:grid-cols-[14rem_1fr_22rem]">
         <!-- On a phone the interview comes first; the lists follow it. -->
-        <CaseSidebar
-          class="order-2 lg:order-none"
-          :suspects="game.suspects"
-          :locations="game.locations"
-          :current="game.current_suspect"
-          :busy="busy"
-          :over="game.over"
-          @talk="(s) => act('talk', { suspect: s })"
-          @search="(l) => act('search', { location: l })"
-        />
+        <div class="order-2 space-y-6 lg:order-none">
+          <CaseSidebar
+            :suspects="game.suspects"
+            :locations="game.locations"
+            :current="game.current_suspect"
+            :busy="busy"
+            :over="game.over"
+            @talk="(s) => act('talk', { suspect: s })"
+            @search="(l) => act('search', { location: l })"
+          />
+          <HintBox
+            v-if="game.help.hints !== 'none'"
+            :hints="game.hints"
+            :busy="busy"
+            :over="game.over"
+            @hint="act('hint', {})"
+          />
+        </div>
 
         <section
           v-if="accusing"

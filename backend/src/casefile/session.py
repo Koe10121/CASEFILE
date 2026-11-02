@@ -11,6 +11,9 @@ the state. The transcript is kept for display and for the model's context, but i
 never trusted as a source of facts (D14).
 """
 
+import math
+import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Self
 
@@ -21,6 +24,7 @@ from casefile.ai.grounding import ground, speaker_words
 from casefile.ai.guard import find_confession, find_leaks
 from casefile.ai.provider import NpcProvider
 from casefile.case.ids import CharacterId, EvidenceId, FactId, LocationId
+from casefile.case.world import HintPolicy
 from casefile.engine.actions import (
     Accuse,
     Action,
@@ -33,6 +37,7 @@ from casefile.engine.actions import (
 from casefile.engine.briefing import SuspectBriefing, build_briefing
 from casefile.engine.engine import Engine, IllegalActionError, Outcome, RejectedReveal
 from casefile.engine.events import Event, LieCaught
+from casefile.engine.hints import next_hint, parse_policy
 from casefile.engine.scoring import Accusation
 from casefile.engine.state import GameState
 
@@ -74,6 +79,9 @@ class SavedGame(BaseModel):
     current_suspect: CharacterId | None
     tokens_used: int = Field(ge=0)
     """Carried over so a restart doesn't refill the token budget."""
+    hints: tuple[str, ...] = ()
+    last_progress_at: float | None = None
+    """Wall-clock time of the last new fact, catch or hint, for timed hints (D54)."""
 
 
 class BudgetExhaustedError(IllegalActionError):
@@ -88,11 +96,16 @@ class GameSession:
     """Model tokens (input + output) this session may spend. ``None``: no cap (mock mode)."""
     detective: str | None = None
     """The detective identity the player chose (D51). ``None``: the case default."""
+    clock: Callable[[], float] = time.time
+    """Wall clock, for timed hints. Replaced in tests."""
     tokens_used: int = field(default=0, init=False)
     state: GameState = field(init=False)
     log: list[LogEntry] = field(default_factory=list, init=False)
     transcripts: dict[CharacterId, list[Exchange]] = field(default_factory=dict, init=False)
     current_suspect: CharacterId | None = field(default=None, init=False)
+    hints: list[str] = field(default_factory=list, init=False)
+    """Hints given so far, oldest first (D54)."""
+    last_progress_at: float = field(init=False)
 
     def __post_init__(self) -> None:
         try:
@@ -100,6 +113,7 @@ class GameSession:
         except KeyError:
             raise IllegalActionError(f"there is no detective identity {self.detective!r}") from None
         self.state = self.engine.new_game()
+        self.last_progress_at = self.clock()
 
     # ------------------------------------------------------------ save and resume
 
@@ -110,6 +124,8 @@ class GameSession:
             transcripts={s: tuple(t) for s, t in self.transcripts.items()},
             current_suspect=self.current_suspect,
             tokens_used=self.tokens_used,
+            hints=tuple(self.hints),
+            last_progress_at=self.last_progress_at,
         )
 
     @classmethod
@@ -124,6 +140,9 @@ class GameSession:
         session.transcripts = {s: list(t) for s, t in saved.transcripts.items()}
         session.current_suspect = saved.current_suspect
         session.tokens_used = saved.tokens_used
+        session.hints = list(saved.hints)
+        if saved.last_progress_at is not None:
+            session.last_progress_at = saved.last_progress_at
         return session
 
     # ------------------------------------------------------------ player actions
@@ -184,13 +203,58 @@ class GameSession:
     def accuse(self, accusation: Accusation) -> Outcome:
         return self._apply(Accuse(accusation=accusation))
 
+    # ------------------------------------------------------------ hints (D54)
+
+    def hint_ready_at(self, policy: HintPolicy) -> float | None:
+        """When the next hint unlocks under a timed policy; ``None`` for the others."""
+        rule = parse_policy(policy)
+        if rule.kind != "auto_after_minutes":
+            return None
+        return self.last_progress_at + rule.amount * 60
+
+    def hints_left(self, policy: HintPolicy) -> int | None:
+        """Hints still available under ``on_request:N``; ``None`` when not counted."""
+        rule = parse_policy(policy)
+        if rule.kind == "none":
+            return 0
+        if rule.kind == "on_request":
+            return max(rule.amount - len(self.hints), 0)
+        return None
+
+    def hint(self, policy: HintPolicy) -> str:
+        """The next nudge along the solution chain, if the difficulty allows one now.
+        Changes nothing in the game itself: hints are help, not facts."""
+        if self.state.is_over:
+            raise IllegalActionError("the accusation is final; the game is over")
+        if self.hints_left(policy) == 0:
+            raise IllegalActionError("no hints left in this game")
+        ready_at = self.hint_ready_at(policy)
+        now = self.clock()
+        if ready_at is not None and now < ready_at:
+            minutes = math.ceil((ready_at - now) / 60)
+            raise IllegalActionError(f"your next hint unlocks in about {minutes} min")
+        text = next_hint(self.engine.index.bundle.solution, self.state)
+        if text in self.hints:
+            raise IllegalActionError("you already have the hint for where you are; see Hints")
+        self.hints.append(text)
+        self.last_progress_at = now
+        return text
+
     # ------------------------------------------------------------ internals
 
     def _apply(self, action: Action) -> Outcome:
         outcome = self.engine.apply(self.state, action)
-        self.state = outcome.state
+        self._advance(outcome.state)
         self.log.append(action)
         return outcome
+
+    def _advance(self, state: GameState) -> None:
+        """Move to a new state, noting the time if the player learned or caught something."""
+        if len(state.known_facts) > len(self.state.known_facts) or len(state.caught_lies) > len(
+            self.state.caught_lies
+        ):
+            self.last_progress_at = self.clock()
+        self.state = state
 
     def _ask(self, suspect: CharacterId, text: str) -> Reply:
         briefing = build_briefing(self.engine, self.state, suspect, self.detective)
@@ -211,7 +275,7 @@ class GameSession:
 
         grounding = ground(npc.reveals, dialogue, briefing.may_reveal, self._names(briefing))
         disclosure = self.engine.disclose(self.state, suspect, grounding.proposals)
-        self.state = disclosure.state
+        self._advance(disclosure.state)
         self.log.append(NpcReveal(suspect=suspect, reveals=grounding.proposals))
 
         history.append(Exchange(detective=text, suspect=dialogue, demeanor=npc.demeanor))

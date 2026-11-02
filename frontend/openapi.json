@@ -744,6 +744,96 @@
           }
         }
       }
+    },
+    "/api/games/{game_id}/hint": {
+      "post": {
+        "summary": "Hint",
+        "description": "The next nudge, if the difficulty allows one now (D54). It arrives in\n``game.hints.given``; nothing else in the game changes.",
+        "operationId": "hint_api_games__game_id__hint_post",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Game Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1132,6 +1222,17 @@
             },
             "type": "array",
             "title": "Reads"
+          },
+          "relevant": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relevant"
           }
         },
         "type": "object",
@@ -1141,7 +1242,8 @@
           "location",
           "summary",
           "text",
-          "reads"
+          "reads",
+          "relevant"
         ],
         "title": "EvidenceOut"
       },
@@ -1297,6 +1399,9 @@
           "tokens": {
             "$ref": "#/components/schemas/TokensOut"
           },
+          "hints": {
+            "$ref": "#/components/schemas/HintsOut"
+          },
           "result": {
             "anyOf": [
               {
@@ -1323,6 +1428,7 @@
           "statements",
           "interviews",
           "tokens",
+          "hints",
           "result"
         ],
         "title": "GameOut",
@@ -1340,6 +1446,47 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HintsOut": {
+        "properties": {
+          "given": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Given"
+          },
+          "left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Left"
+          },
+          "ready_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "given",
+          "left",
+          "ready_at"
+        ],
+        "title": "HintsOut",
+        "description": "Hints given so far and whether another can be had (D54). Never the next hint."
       },
       "IdentityOut": {
         "properties": {

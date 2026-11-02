@@ -140,6 +140,27 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/games/{game_id}/hint": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Hint
+     * @description The next nudge, if the difficulty allows one now (D54). It arrives in
+     *     ``game.hints.given``; nothing else in the game changes.
+     */
+    post: operations["hint_api_games__game_id__hint_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -287,6 +308,8 @@ export interface components {
       text: string | null;
       /** Reads */
       reads: string[];
+      /** Relevant */
+      relevant: boolean | null;
     };
     /** ExchangeOut */
     ExchangeOut: {
@@ -346,12 +369,25 @@ export interface components {
         [key: string]: components["schemas"]["ExchangeOut"][];
       };
       tokens: components["schemas"]["TokensOut"];
+      hints: components["schemas"]["HintsOut"];
       result: components["schemas"]["ResultOut"] | null;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
+    };
+    /**
+     * HintsOut
+     * @description Hints given so far and whether another can be had (D54). Never the next hint.
+     */
+    HintsOut: {
+      /** Given */
+      given: string[];
+      /** Left */
+      left: number | null;
+      /** Ready At */
+      ready_at: number | null;
     };
     /**
      * IdentityOut
@@ -1147,6 +1183,82 @@ export interface operations {
         "application/json": components["schemas"]["AccuseRequest"];
       };
     };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ActionOut"];
+        };
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
+    };
+  };
+  hint_api_games__game_id__hint_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        game_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description Successful Response */
       200: {
