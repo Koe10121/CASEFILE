@@ -155,8 +155,10 @@ watch(
         </section>
         <InterviewRoom
           v-else-if="suspect"
+          :id="suspect.id"
           class="order-1 h-[70dvh] lg:order-none lg:h-[calc(100dvh-7rem)]"
           :name="suspect.name"
+          :faces="cover.portraits[suspect.id] ?? []"
           :exchanges="exchanges"
           :fresh-index="freshIndex"
           :evidence="game.evidence"

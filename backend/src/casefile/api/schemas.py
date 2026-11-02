@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from casefile.case.ids import CharacterId, EvidenceId, FactId, LieId, LocationId
 from casefile.case.world import DifficultyProfile
 from casefile.engine.scoring import Accusation
+from casefile.expressions import Expression
 
 Difficulty = Literal["easy", "normal", "hard"]
 
@@ -110,6 +111,8 @@ class CaseOut(_Out):
     """Who plays the suspects on this server: ``mock``, ``ollama`` or ``claude``."""
     max_question_chars: int
     """The longest question the server accepts, so the UI can count down to it."""
+    portraits: dict[CharacterId, tuple[Expression, ...]]
+    """The portrait images this server has, per character (D55). Often incomplete."""
 
 
 # ------------------------------------------------------------------ one game
@@ -180,6 +183,8 @@ class ExchangeOut(_Out):
     demeanor: str
     shown: str | None
     """The evidence the detective put in front of them, by name (D52)."""
+    expression: Expression
+    """Which portrait goes with this line (D55)."""
 
 
 class PointsOut(_Out):
@@ -298,6 +303,8 @@ class LineOut(_Out):
     suspect: CharacterId
     dialogue: str
     demeanor: str
+    expression: Expression
+    """Which portrait to show (D55)."""
 
 
 class ActionOut(_Out):

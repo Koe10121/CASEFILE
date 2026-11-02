@@ -12,21 +12,24 @@ work out game state for itself: the backend owns the truth.
 import argparse
 import json
 from pathlib import Path
-from typing import get_args
+from typing import cast, get_args
 
 import uvicorn
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 
 from casefile.ai.contract import ProviderError
 from casefile.ai.factory import make_provider, setup_problem
 from casefile.ai.provider import NpcProvider
+from casefile.case.ids import CharacterId
 from casefile.case.validation import load_valid_case
 from casefile.cli import DEFAULT_CASE
 from casefile.engine.engine import Engine, IllegalActionError, Outcome
+from casefile.expressions import Expression
 from casefile.session import BudgetExhaustedError, GameSession, Reply
 from casefile.settings import Ai, Settings
 
+from .portraits import Portraits, find_portraits
 from .saves import SaveFile
 from .schemas import (
     AccuseRequest,
@@ -57,6 +60,7 @@ def create_app(
     max_games: int,
     idle_ttl_s: float,
     saves: SaveFile | None = None,
+    portraits: Portraits | None = None,
 ) -> FastAPI:
     app = FastAPI(title="CASEFILE", version="0.1.0", responses=_ERRORS)
     store = GameStore(
@@ -66,10 +70,15 @@ def create_app(
         max_games=max_games,
         idle_ttl_s=idle_ttl_s,
     )
-    case = case_view(engine, ai)
+    faces = portraits or {}
+    case = case_view(engine, ai, faces)
 
-    def action(game_id: str, game: StoredGame, outcome: Reply | Outcome) -> ActionOut:
-        line = line_view(game.session, outcome) if isinstance(outcome, Reply) else None
+    def action(
+        game_id: str, game: StoredGame, outcome: Reply | Outcome, *, caught: bool = False
+    ) -> ActionOut:
+        line = (
+            line_view(game.session, outcome, caught=caught) if isinstance(outcome, Reply) else None
+        )
         return ActionOut(
             line=line,
             events=events_view(engine, outcome.events),
@@ -78,6 +87,18 @@ def create_app(
 
     # Plain ``def`` handlers: FastAPI runs them in a worker thread, so a slow model
     # reply in one game doesn't block requests for the others.
+
+    @app.get(
+        "/api/portraits/{character}/{expression}",
+        response_class=FileResponse,
+        responses={404: {"model": ErrorOut}},
+    )
+    def portrait(character: str, expression: str) -> FileResponse:
+        """A portrait image (D55). Only files the startup scan found are served."""
+        path = faces.get(CharacterId(character), {}).get(cast(Expression, expression))
+        if path is None:
+            raise HTTPException(404, "no such portrait")
+        return FileResponse(path, headers={"Cache-Control": "public, max-age=3600"})
 
     @app.get("/api/case")
     def get_case() -> CaseOut:
@@ -112,7 +133,7 @@ def create_app(
     @app.post("/api/games/{game_id}/show")
     def show(game_id: str, body: ShowRequest) -> ActionOut:
         with store.use(game_id) as game:
-            return action(game_id, game, game.session.show(body.evidence))
+            return action(game_id, game, game.session.show(body.evidence), caught=True)
 
     @app.post("/api/games/{game_id}/accuse")
     def accuse(game_id: str, body: AccuseRequest) -> ActionOut:
@@ -193,6 +214,9 @@ def main(argv: list[str] | None = None) -> None:
         max_games=settings.max_games,
         idle_ttl_s=settings.game_idle_minutes * 60,
         saves=saves,
+        portraits=find_portraits(
+            DEFAULT_CASE / "portraits", (c.id for c in engine.index.bundle.case.characters)
+        ),
     )
     if args.openapi is not None:
         # Written as UTF-8 by Python, not piped: PowerShell 5 redirects as UTF-16.

@@ -50,19 +50,20 @@ CI regenerates both files and fails if they differ from what is committed, so th
 
 ## Layout
 
-| Path                               | What it is                                                                               |
-| ---------------------------------- | ---------------------------------------------------------------------------------------- |
-| `src/api/schema.d.ts`              | Generated API types (do not edit)                                                        |
-| `src/api/types.ts`                 | Short names for the generated types                                                      |
-| `src/api/client.ts`                | `api`: one typed function per endpoint; `ApiError` carries the server's reason           |
-| `src/game/useGame.ts`              | One game's state: replaced with the server's copy after every action; one move at a time |
-| `src/game/lastGame.ts`             | Remembers the last game ID so the cover can offer "continue"                             |
-| `src/composables/useTypewriter.ts` | Types out a suspect's finished line (D45); respects reduced motion; click to skip        |
-| `src/views/CoverView.vue`          | The case cover: intro, detective, people, difficulty, start                              |
-| `src/views/GameView.vue`           | The investigation: suspects and places, the interview, events and evidence               |
-| `src/components/HintBox.vue`       | Hints given so far and the "I'm stuck" button, with the Easy countdown (D54)             |
-| `src/components/InterviewRoom.vue` | The transcript, the question box (Enter to ask) and "show evidence"                      |
-| `src/components/CaseSidebar.vue`   | Suspects to interview and places to search                                               |
-| `src/components/EventFeed.vue`     | What the last actions caused: facts learned, lies on record and caught                   |
-| `src/components/EvidenceList.vue`  | Evidence held, with document text and closer reads                                       |
-| `src/**/*.test.ts`                 | Unit and component tests                                                                 |
+| Path                                 | What it is                                                                                |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `src/api/schema.d.ts`                | Generated API types (do not edit)                                                         |
+| `src/api/types.ts`                   | Short names for the generated types                                                       |
+| `src/api/client.ts`                  | `api`: one typed function per endpoint; `ApiError` carries the server's reason            |
+| `src/game/useGame.ts`                | One game's state: replaced with the server's copy after every action; one move at a time  |
+| `src/game/lastGame.ts`               | Remembers the last game ID so the cover can offer "continue"                              |
+| `src/composables/useTypewriter.ts`   | Types out a suspect's finished line (D45); respects reduced motion; click to skip         |
+| `src/views/CoverView.vue`            | The case cover: intro, detective, people, difficulty, start                               |
+| `src/views/GameView.vue`             | The investigation: suspects and places, the interview, events and evidence                |
+| `src/components/SuspectPortrait.vue` | A suspect's face for the current expression, falling back to neutral, then initials (D55) |
+| `src/components/HintBox.vue`         | Hints given so far and the "I'm stuck" button, with the Easy countdown (D54)              |
+| `src/components/InterviewRoom.vue`   | The transcript, the question box (Enter to ask) and "show evidence"                       |
+| `src/components/CaseSidebar.vue`     | Suspects to interview and places to search                                                |
+| `src/components/EventFeed.vue`       | What the last actions caused: facts learned, lies on record and caught                    |
+| `src/components/EvidenceList.vue`    | Evidence held, with document text and closer reads                                        |
+| `src/**/*.test.ts`                   | Unit and component tests                                                                  |

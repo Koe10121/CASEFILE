@@ -5,6 +5,98 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/api/portraits/{character}/{expression}": {
+      "get": {
+        "summary": "Portrait",
+        "description": "A portrait image (D55). Only files the startup scan found are served.",
+        "operationId": "portrait_api_portraits__character___expression__get",
+        "parameters": [
+          {
+            "name": "character",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Character"
+            }
+          },
+          {
+            "name": "expression",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Expression"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/case": {
       "get": {
         "summary": "Get Case",
@@ -1063,6 +1155,26 @@
           "max_question_chars": {
             "type": "integer",
             "title": "Max Question Chars"
+          },
+          "portraits": {
+            "patternProperties": {
+              "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$": {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "neutral",
+                    "guarded",
+                    "angry",
+                    "afraid",
+                    "sad",
+                    "shaken"
+                  ]
+                },
+                "type": "array"
+              }
+            },
+            "type": "object",
+            "title": "Portraits"
           }
         },
         "type": "object",
@@ -1076,7 +1188,8 @@
           "people",
           "accusation",
           "ai",
-          "max_question_chars"
+          "max_question_chars",
+          "portraits"
         ],
         "title": "CaseOut",
         "description": "What the case file's cover shows. The same for every game of this case."
@@ -1271,6 +1384,18 @@
               }
             ],
             "title": "Shown"
+          },
+          "expression": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "guarded",
+              "angry",
+              "afraid",
+              "sad",
+              "shaken"
+            ],
+            "title": "Expression"
           }
         },
         "type": "object",
@@ -1278,7 +1403,8 @@
           "detective",
           "suspect",
           "demeanor",
-          "shown"
+          "shown",
+          "expression"
         ],
         "title": "ExchangeOut"
       },
@@ -1604,13 +1730,26 @@
           "demeanor": {
             "type": "string",
             "title": "Demeanor"
+          },
+          "expression": {
+            "type": "string",
+            "enum": [
+              "neutral",
+              "guarded",
+              "angry",
+              "afraid",
+              "sad",
+              "shaken"
+            ],
+            "title": "Expression"
           }
         },
         "type": "object",
         "required": [
           "suspect",
           "dialogue",
-          "demeanor"
+          "demeanor",
+          "expression"
         ],
         "title": "LineOut",
         "description": "What the suspect said. Already checked by the guard and grounding (D45)."

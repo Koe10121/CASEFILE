@@ -45,6 +45,7 @@ export const cover: CaseCover = {
   accusation: { culprits: ["S_RICHARD"], motives: [], methods: [], max_evidence: 4 },
   ai: "mock",
   max_question_chars: 500,
+  portraits: {},
 };
 
 /** Richard's first meeting: his opening statement and the lie it puts on record. */
@@ -54,9 +55,15 @@ export function talkResult(): ActionResult {
     suspect: "I was in the billiard room.",
     demeanor: "hostile",
     shown: null,
+    expression: "angry" as const,
   };
   return {
-    line: { suspect: "S_RICHARD", dialogue: exchange.suspect, demeanor: exchange.demeanor },
+    line: {
+      suspect: "S_RICHARD",
+      dialogue: exchange.suspect,
+      demeanor: exchange.demeanor,
+      expression: exchange.expression,
+    },
     events: [
       { type: "lie_on_record", suspect: "S_RICHARD", lie: "LIE_RICHARD_BILLIARD", claim: "a" },
       { type: "location_searched", location: "LOC_STUDY", name: "Study" },

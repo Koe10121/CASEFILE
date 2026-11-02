@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | 1 | Design CASE #001 and the case data model | Done |
 | 2 | Backend engine: Pydantic models, validator as pytest, engine core, Richard end-to-end in mock AI mode | Done |
-| 3 | Frontend: HTTP API, then the Vue 3 web game | In progress: the HTTP API (D43–D46) and the Vue + Vite app (D47–D48) are playable end to end, from the cover to the results. Suspects react when caught (D52), and games are saved and resume after a restart (D53). Hints and the Easy evidence picker are in (D54). Next: expressions and portraits |
+| 3 | Frontend: HTTP API, then the Vue 3 web game | In progress: the HTTP API (D43–D46) and the Vue + Vite app (D47–D48) are playable end to end, from the cover to the results. Suspects react when caught (D52), and games are saved and resume after a restart (D53). Hints and the Easy evidence picker are in (D54). Portraits change with each suspect's mood (D55); the art itself is made with the guide in `docs/art/portraits.md`. Next: the portrait art, an end-to-end browser test, and the public deploy |
 | 4 | AI integration: all four suspects | Done: Claude and free Ollama providers, eval harness, grounding and confession guard. See [ai-evals.md](ai-evals.md) |
 | 5 | Full investigation experience: save/resume, accusation, scoring | |
 | 6 | Eval harness, testing and deployment | |
