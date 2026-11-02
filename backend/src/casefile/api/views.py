@@ -11,7 +11,7 @@ from casefile.case.base import TimeSpan
 from casefile.case.conditions import holds
 from casefile.case.ids import CharacterId, EvidenceId, LieId
 from casefile.case.rules import catches, evidence_establishes, location_accessible
-from casefile.case.world import Detective, DetectiveIdentity
+from casefile.case.world import Detective, DetectiveIdentity, DifficultyProfile
 from casefile.engine.engine import Engine
 from casefile.engine.events import (
     AccusationScored,
@@ -37,6 +37,7 @@ from .schemas import (
     ExchangeOut,
     FactLearnedOut,
     GameOut,
+    HintsOut,
     IdentityOut,
     LieCaughtOut,
     LieOnRecordOut,
@@ -83,11 +84,15 @@ def case_view(engine: Engine, ai: str) -> CaseOut:
     )
 
 
+def difficulty_help(engine: Engine, difficulty: Difficulty) -> DifficultyProfile:
+    profiles = engine.index.bundle.case.difficulty_profiles
+    return {"easy": profiles.easy, "normal": profiles.normal, "hard": profiles.hard}[difficulty]
+
+
 def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> GameOut:
     ix = session.engine.index
     state = session.state
-    profiles = ix.bundle.case.difficulty_profiles
-    help_ = {"easy": profiles.easy, "normal": profiles.normal, "hard": profiles.hard}[difficulty]
+    help_ = difficulty_help(session.engine, difficulty)
     flag = help_.contradictions == "auto_flag"
     return GameOut(
         id=game_id,
@@ -112,7 +117,9 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
             )
             for loc in ix.locations.values()
         ),
-        evidence=_evidence(session.engine, state),
+        evidence=_evidence(
+            session.engine, state, relevant_only=help_.evidence_picker == "relevant_only"
+        ),
         notebook=tuple(
             NotebookEntryOut(
                 fact=entry.fact,
@@ -145,6 +152,11 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
             for suspect, exchanges in session.transcripts.items()
         },
         tokens=TokensOut(used=session.tokens_used, budget=session.token_budget),
+        hints=HintsOut(
+            given=tuple(session.hints),
+            left=session.hints_left(help_.hints),
+            ready_at=session.hint_ready_at(help_.hints),
+        ),
         result=_result(session.engine, state),
     )
 
@@ -189,8 +201,9 @@ def events_view(engine: Engine, events: tuple[Event, ...]) -> tuple[EventOut, ..
 # ------------------------------------------------------------------ helpers
 
 
-def _evidence(engine: Engine, state: GameState) -> tuple[EvidenceOut, ...]:
+def _evidence(engine: Engine, state: GameState, *, relevant_only: bool) -> tuple[EvidenceOut, ...]:
     ix = engine.index
+    key = {item for group in ix.bundle.solution.key_evidence_groups for item in group.items}
     return tuple(
         EvidenceOut(
             id=ev.id,
@@ -199,6 +212,7 @@ def _evidence(engine: Engine, state: GameState) -> tuple[EvidenceOut, ...]:
             summary=ev.summary,
             text=ev.text,
             reads=tuple(read.text for read in ev.deeper_reads if holds(read.when, state)),
+            relevant=ev.id in key if relevant_only else None,
         )
         for ev in ix.evidence.values()
         if ev.id in state.found_evidence

@@ -7,6 +7,7 @@ type Schemas = components["schemas"];
 
 export type CaseCover = Schemas["CaseOut"];
 export type Game = Schemas["GameOut"];
+export type Hints = Schemas["HintsOut"];
 export type ActionResult = Schemas["ActionOut"];
 export type GameEvent = ActionResult["events"][number];
 export type Line = Schemas["LineOut"];
@@ -23,6 +24,7 @@ export interface ActionBodies {
   search: Schemas["SearchRequest"];
   show: Schemas["ShowRequest"];
   accuse: Schemas["AccuseRequest"];
+  hint: Record<string, never>;
 }
 export type Verb = keyof ActionBodies;
 export type NotebookEntry = Schemas["NotebookEntryOut"];

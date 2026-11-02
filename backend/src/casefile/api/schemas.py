@@ -150,6 +150,9 @@ class EvidenceOut(_Out):
     """Verbatim contents of a document, if it is one."""
     reads: tuple[str, ...]
     """What closer reads have revealed so far, in the order the case lists them."""
+    relevant: bool | None
+    """Whether the item belongs in an accusation. Only sent on Easy, where the evidence
+    picker lists relevant items only (D54); ``None`` elsewhere."""
 
 
 class SuspectOut(_Out):
@@ -203,6 +206,16 @@ class TokensOut(_Out):
     budget: int | None
 
 
+class HintsOut(_Out):
+    """Hints given so far and whether another can be had (D54). Never the next hint."""
+
+    given: tuple[str, ...]
+    left: int | None
+    """Hints left in this game, or ``None`` when they aren't counted (Easy)."""
+    ready_at: float | None
+    """On Easy, when the next hint unlocks (Unix seconds). ``None`` otherwise."""
+
+
 class GameOut(_Out):
     """The whole of one game as the player sees it, after every action (D44)."""
 
@@ -221,6 +234,7 @@ class GameOut(_Out):
     statements: tuple[StatementOut, ...]
     interviews: dict[CharacterId, tuple[ExchangeOut, ...]]
     tokens: TokensOut
+    hints: HintsOut
     result: ResultOut | None
     """Set once the player accuses, with the epilogue."""
 

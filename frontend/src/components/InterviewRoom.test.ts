@@ -19,6 +19,7 @@ function room(overrides: Record<string, unknown> = {}) {
           summary: "",
           text: null,
           reads: [],
+          relevant: null,
         },
       ],
       busy: false,
