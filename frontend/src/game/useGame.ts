@@ -13,6 +13,8 @@ export function useGame(id: string) {
   const busy = ref(false);
   const error = ref<string | null>(null);
   const lost = ref(false);
+  /** The last question was refused for want of a good Claude key (D58). */
+  const needsKey = ref(false);
   /** What the last action caused, newest first, for the "what just happened" feed. */
   const feed = ref<GameEvent[]>([]);
   /** The transcript entry that just arrived, which the interview types out. */
@@ -29,12 +31,14 @@ export function useGame(id: string) {
     if (busy.value) return; // the server would refuse an overlapping move anyway (D46)
     busy.value = true;
     error.value = null;
+    needsKey.value = false;
     try {
       await work();
     } catch (e) {
       if (!(e instanceof ApiError)) throw e;
       error.value = e.message;
       lost.value = e.gameLost;
+      needsKey.value = e.needsKey;
     } finally {
       busy.value = false;
     }
@@ -61,7 +65,27 @@ export function useGame(id: string) {
     });
   }
 
-  return { cover, game, busy, error, lost, feed, fresh, shrugged, suspect, load, act };
+  /** The player entered a new key: clear the refusal so they can ask again. */
+  function keyChanged(): void {
+    needsKey.value = false;
+    error.value = null;
+  }
+
+  return {
+    cover,
+    game,
+    busy,
+    error,
+    lost,
+    needsKey,
+    feed,
+    fresh,
+    shrugged,
+    suspect,
+    load,
+    act,
+    keyChanged,
+  };
 }
 
 export type GameStore = ReturnType<typeof useGame>;

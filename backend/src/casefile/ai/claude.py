@@ -52,6 +52,9 @@ class ClaudeNpc:
                 betas=[FALLBACK_BETA],
                 fallbacks="default",
             )
+        except (anthropic.AuthenticationError, anthropic.PermissionDeniedError) as exc:
+            # The key itself was refused: on a player's key (D58) the player can fix it.
+            raise ProviderError("auth", f"HTTP {exc.status_code}: {exc.message}") from exc
         except anthropic.APIStatusError as exc:
             raise ProviderError("api", f"HTTP {exc.status_code}: {exc.message}") from exc
         except anthropic.APIConnectionError as exc:

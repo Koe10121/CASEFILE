@@ -1,3 +1,4 @@
+import { playerKey } from "../game/playerKey";
 import type { ActionBodies, ActionResult, CaseCover, Difficulty, Game, Verb } from "./types";
 
 /** A refused request, with the backend's one-line reason. Nothing changed in the game. */
@@ -8,6 +9,12 @@ export class ApiError extends Error {
   ) {
     super(message);
     this.name = "ApiError";
+  }
+
+  /** The server plays the suspects on the player's own Claude key, and it is missing
+   * or was refused (D58). */
+  get needsKey(): boolean {
+    return this.status === 401;
   }
 
   /** The game is gone: never existed, or the server forgot it (restart or idle expiry). */
@@ -50,9 +57,13 @@ export const api = {
 
   getGame: (id: string) => request<Game>(`/games/${encodeURIComponent(id)}`),
 
-  act: <V extends Verb>(id: string, verb: V, body: ActionBodies[V]) =>
-    request<ActionResult>(`/games/${encodeURIComponent(id)}/${verb}`, {
+  act: <V extends Verb>(id: string, verb: V, body: ActionBodies[V]) => {
+    // Only a question calls the model, so only a question carries the key (D58).
+    const key = verb === "ask" ? playerKey() : null;
+    return request<ActionResult>(`/games/${encodeURIComponent(id)}/${verb}`, {
       method: "POST",
       body: JSON.stringify(body),
-    }),
+      headers: key ? { "X-Claude-Key": key } : {},
+    });
+  },
 };

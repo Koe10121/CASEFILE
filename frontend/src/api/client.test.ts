@@ -1,9 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { jsonResponse, makeGame } from "../test/fixtures";
+import { forgetPlayerKey, savePlayerKey } from "../game/playerKey";
 import { ApiError, api } from "./client";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  forgetPlayerKey();
+});
 
 function stubFetch(response: Response | Error) {
   const fetch = vi.fn(() =>
@@ -22,6 +26,31 @@ describe("api", () => {
       body: '{"text":"Where were you?"}',
       headers: { "Content-Type": "application/json" },
     });
+  });
+
+  it("sends the player's Claude key with questions only", async () => {
+    savePlayerKey("  sk-ant-test  ", false);
+    const fetch = stubFetch(jsonResponse(200, { line: null, events: [], game: makeGame() }));
+    await api.act("g1", "ask", { text: "Where were you?" });
+    expect(fetch.mock.lastCall).toMatchObject([
+      "/api/games/g1/ask",
+      { headers: { "X-Claude-Key": "sk-ant-test" } },
+    ]);
+
+    const search = stubFetch(jsonResponse(200, { line: null, events: [], game: makeGame() }));
+    await api.act("g1", "search", { location: "LOC_STUDY" });
+    expect(search.mock.lastCall).toMatchObject([
+      "/api/games/g1/search",
+      { headers: { "Content-Type": "application/json" } },
+    ]);
+    expect(JSON.stringify(search.mock.lastCall)).not.toContain("sk-ant-test");
+  });
+
+  it("knows when the key is missing or refused", async () => {
+    stubFetch(jsonResponse(401, { detail: "add your key" }));
+    const error = (await api.act("g1", "ask", { text: "Hi" }).catch((e: unknown) => e)) as ApiError;
+    expect(error.needsKey).toBe(true);
+    expect(error.gameLost).toBe(false);
   });
 
   it("turns the server's detail into the error message", async () => {

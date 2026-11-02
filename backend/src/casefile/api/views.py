@@ -58,7 +58,9 @@ from .schemas import (
 )
 
 
-def case_view(engine: Engine, ai: str, portraits: Portraits) -> CaseOut:
+def case_view(
+    engine: Engine, ai: str, portraits: Portraits, *, player_keys: bool = False
+) -> CaseOut:
     case = engine.index.bundle.case
     options = case.accusation_options
     return CaseOut(
@@ -82,6 +84,7 @@ def case_view(engine: Engine, ai: str, portraits: Portraits) -> CaseOut:
             max_evidence=options.max_evidence,
         ),
         ai=ai,
+        player_keys=player_keys,
         max_question_chars=MAX_PLAYER_CHARS,
         portraits={
             character: tuple(e for e in EXPRESSIONS if e in faces)

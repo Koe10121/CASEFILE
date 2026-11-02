@@ -190,6 +190,16 @@ def test_valid_reply_and_usage(richard: SuspectBriefing) -> None:
             ),
             "api",
         ),
+        (
+            anthropic.AuthenticationError(
+                "invalid x-api-key",
+                response=httpx2.Response(
+                    401, request=httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+                ),
+                body=None,
+            ),
+            "auth",
+        ),
     ],
 )
 def test_failures_become_provider_errors(
