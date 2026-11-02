@@ -2,6 +2,7 @@
 
     uv run casefile-api                  # http://127.0.0.1:8000, scripted suspects
     uv run casefile-api --ai ollama      # a local model plays them: free
+    uv run casefile-api --openapi ../frontend/openapi.json   # write the API schema
 
 Interactive docs at ``/docs``. Every action answers with what the suspect said, what
 happened, and the whole game as the player now sees it, so the browser never has to
@@ -9,6 +10,8 @@ work out game state for itself: the backend owns the truth.
 """
 
 import argparse
+import json
+from pathlib import Path
 from typing import get_args
 
 import uvicorn
@@ -152,7 +155,12 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--ai", choices=get_args(Ai), default=settings.ai)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument(
+        "--openapi", type=Path, metavar="FILE", help="write the OpenAPI schema to FILE and exit"
+    )
     args = parser.parse_args(argv)
+    if args.openapi is not None:
+        args.ai = "mock"  # the schema is the same whoever plays the suspects
     if args.ai == "claude" and settings.anthropic_api_key is None:
         parser.error("--ai claude needs ANTHROPIC_API_KEY (see backend/.env.example)")
     provider, budget = make_provider(args.ai, settings)
@@ -164,4 +172,8 @@ def main(argv: list[str] | None = None) -> None:
         max_games=settings.max_games,
         idle_ttl_s=settings.game_idle_minutes * 60,
     )
+    if args.openapi is not None:
+        # Written as UTF-8 by Python, not piped: PowerShell 5 redirects as UTF-16.
+        args.openapi.write_text(json.dumps(app.openapi(), indent=2) + "\n", encoding="utf-8")
+        return
     uvicorn.run(app, host=args.host, port=args.port)

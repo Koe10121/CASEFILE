@@ -53,6 +53,8 @@ Invoke-RestMethod -Method Post "http://127.0.0.1:8000/api/games/$($game.id)/talk
 
 Each action returns `line` (what the suspect said, if anything), `events` (what happened) and `game` (the whole player view). Errors are `{"detail": "..."}`: 404 unknown or expired game, 409 an illegal move or a request while the last one is still running, 422 a malformed request, 429 the token budget is spent, 502 the model didn't answer (nothing changed), 503 the server is full. Games live in memory for now, so restarting the server ends them.
 
+`uv run casefile-api --openapi ../frontend/openapi.json` writes the API schema that the frontend's TypeScript types are generated from (see [`frontend/README.md`](../frontend/README.md#api-types)).
+
 ## Score a model (eval harness)
 
 ```bash

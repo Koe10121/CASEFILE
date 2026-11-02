@@ -96,6 +96,8 @@ class CaseOut(_Out):
     accusation: AccusationOptionsOut
     ai: str
     """Who plays the suspects on this server: ``mock``, ``ollama`` or ``claude``."""
+    max_question_chars: int
+    """The longest question the server accepts, so the UI can count down to it."""
 
 
 # ------------------------------------------------------------------ one game

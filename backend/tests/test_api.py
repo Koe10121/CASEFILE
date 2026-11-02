@@ -3,6 +3,7 @@
 import json
 import re
 from collections.abc import Iterator, Sequence
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -12,7 +13,7 @@ from httpx2 import Response
 from casefile.ai.contract import Exchange, NpcReply, NpcTurn, ProviderError, Usage
 from casefile.ai.mock import MockNpc
 from casefile.ai.provider import NpcProvider
-from casefile.api.app import create_app
+from casefile.api.app import create_app, main
 from casefile.api.store import GameBusyError, GameNotFoundError, GameStore, StoreFullError
 from casefile.case import CaseBundle
 from casefile.engine import Engine
@@ -132,6 +133,7 @@ def test_the_case_cover(client: TestClient, blackwood: CaseBundle) -> None:
     case = ok(client.get("/api/case"))
     assert case["title"] == blackwood.case.title
     assert case["ai"] == "mock"
+    assert case["max_question_chars"] == MAX_PLAYER_CHARS
     assert len(case["accusation"]["motives"]) == len(blackwood.case.accusation_options.motives)
 
 
@@ -306,3 +308,11 @@ def test_idle_games_expire_but_busy_ones_do_not(blackwood: CaseBundle) -> None:
     with store.use(busy):
         pass
     assert len(store) == 2
+
+
+def test_the_schema_can_be_written_for_the_frontend(tmp_path: Path) -> None:
+    out = tmp_path / "openapi.json"
+    main(["--openapi", str(out)])
+    schema = json.loads(out.read_text(encoding="utf-8"))
+    assert "/api/games/{game_id}/ask" in schema["paths"]
+    assert "GameOut" in schema["components"]["schemas"]

@@ -1,0 +1,1839 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CASEFILE",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/case": {
+      "get": {
+        "summary": "Get Case",
+        "operationId": "get_case_api_case_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/games": {
+      "post": {
+        "summary": "New Game",
+        "operationId": "new_game_api_games_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewGame"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/games/{game_id}": {
+      "get": {
+        "summary": "Get Game",
+        "operationId": "get_game_api_games__game_id__get",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Game Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/games/{game_id}/talk": {
+      "post": {
+        "summary": "Talk",
+        "operationId": "talk_api_games__game_id__talk_post",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Game Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TalkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/games/{game_id}/ask": {
+      "post": {
+        "summary": "Ask",
+        "operationId": "ask_api_games__game_id__ask_post",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Game Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/games/{game_id}/search": {
+      "post": {
+        "summary": "Search",
+        "operationId": "search_api_games__game_id__search_post",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Game Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/games/{game_id}/show": {
+      "post": {
+        "summary": "Show",
+        "operationId": "show_api_games__game_id__show_post",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Game Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShowRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/games/{game_id}/accuse": {
+      "post": {
+        "summary": "Accuse",
+        "operationId": "accuse_api_games__game_id__accuse_post",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Game Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccuseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Accusation": {
+        "properties": {
+          "culprit": {
+            "type": "string",
+            "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Culprit"
+          },
+          "motive": {
+            "type": "string",
+            "pattern": "^MOT_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Motive"
+          },
+          "method": {
+            "type": "string",
+            "pattern": "^MTH_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Method"
+          },
+          "evidence": {
+            "items": {
+              "type": "string",
+              "pattern": "^E\\d{2}$"
+            },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "culprit",
+          "motive",
+          "method",
+          "evidence"
+        ],
+        "title": "Accusation",
+        "description": "The player's structured, final accusation."
+      },
+      "AccusationOptionsOut": {
+        "properties": {
+          "culprits": {
+            "items": {
+              "type": "string",
+              "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$"
+            },
+            "type": "array",
+            "title": "Culprits"
+          },
+          "motives": {
+            "items": {
+              "$ref": "#/components/schemas/OptionOut"
+            },
+            "type": "array",
+            "title": "Motives"
+          },
+          "methods": {
+            "items": {
+              "$ref": "#/components/schemas/OptionOut"
+            },
+            "type": "array",
+            "title": "Methods"
+          },
+          "max_evidence": {
+            "type": "integer",
+            "title": "Max Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "culprits",
+          "motives",
+          "methods",
+          "max_evidence"
+        ],
+        "title": "AccusationOptionsOut"
+      },
+      "AccusationScoredOut": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "accusation_scored",
+            "title": "Type",
+            "default": "accusation_scored"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total"
+        ],
+        "title": "AccusationScoredOut"
+      },
+      "AccuseRequest": {
+        "properties": {
+          "accusation": {
+            "$ref": "#/components/schemas/Accusation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "accusation"
+        ],
+        "title": "AccuseRequest"
+      },
+      "ActionOut": {
+        "properties": {
+          "line": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LineOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "events": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/FactLearnedOut"
+                },
+                {
+                  "$ref": "#/components/schemas/EvidenceFoundOut"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationSearchedOut"
+                },
+                {
+                  "$ref": "#/components/schemas/LieOnRecordOut"
+                },
+                {
+                  "$ref": "#/components/schemas/LieCaughtOut"
+                },
+                {
+                  "$ref": "#/components/schemas/AccusationScoredOut"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "type",
+                "mapping": {
+                  "accusation_scored": "#/components/schemas/AccusationScoredOut",
+                  "evidence_found": "#/components/schemas/EvidenceFoundOut",
+                  "fact_learned": "#/components/schemas/FactLearnedOut",
+                  "lie_caught": "#/components/schemas/LieCaughtOut",
+                  "lie_on_record": "#/components/schemas/LieOnRecordOut",
+                  "location_searched": "#/components/schemas/LocationSearchedOut"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "game": {
+            "$ref": "#/components/schemas/GameOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line",
+          "events",
+          "game"
+        ],
+        "title": "ActionOut"
+      },
+      "AskRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "AskRequest"
+      },
+      "CaseOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "place": {
+            "type": "string",
+            "title": "Place"
+          },
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "intro": {
+            "type": "string",
+            "title": "Intro"
+          },
+          "detective": {
+            "$ref": "#/components/schemas/DetectiveOut"
+          },
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/PersonOut"
+            },
+            "type": "array",
+            "title": "People"
+          },
+          "accusation": {
+            "$ref": "#/components/schemas/AccusationOptionsOut"
+          },
+          "ai": {
+            "type": "string",
+            "title": "Ai"
+          },
+          "max_question_chars": {
+            "type": "integer",
+            "title": "Max Question Chars"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "place",
+          "date",
+          "intro",
+          "detective",
+          "people",
+          "accusation",
+          "ai",
+          "max_question_chars"
+        ],
+        "title": "CaseOut",
+        "description": "What the case file's cover shows. The same for every game of this case."
+      },
+      "DetectiveOut": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "callsign": {
+            "type": "string",
+            "title": "Callsign"
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "callsign",
+          "bio"
+        ],
+        "title": "DetectiveOut"
+      },
+      "DifficultyProfile": {
+        "properties": {
+          "contradictions": {
+            "type": "string",
+            "enum": [
+              "auto_flag",
+              "side_by_side",
+              "off"
+            ],
+            "title": "Contradictions"
+          },
+          "hints": {
+            "type": "string",
+            "pattern": "^(none|auto_after_minutes:[1-9]\\d*|on_request:[1-9]\\d*)$",
+            "title": "Hints"
+          },
+          "notebook": {
+            "type": "string",
+            "enum": [
+              "by_suspect_and_time",
+              "by_suspect",
+              "flat"
+            ],
+            "title": "Notebook"
+          },
+          "evidence_picker": {
+            "type": "string",
+            "enum": [
+              "relevant_only",
+              "all_found"
+            ],
+            "title": "Evidence Picker"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "contradictions",
+          "hints",
+          "notebook",
+          "evidence_picker"
+        ],
+        "title": "DifficultyProfile",
+        "description": "Difficulty changes only the help the player gets, never the truth (D11)."
+      },
+      "ErrorOut": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorOut"
+      },
+      "EvidenceFoundOut": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "evidence_found",
+            "title": "Type",
+            "default": "evidence_found"
+          },
+          "evidence": {
+            "type": "string",
+            "pattern": "^E\\d{2}$",
+            "title": "Evidence"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "evidence",
+          "name"
+        ],
+        "title": "EvidenceFoundOut"
+      },
+      "EvidenceOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^E\\d{2}$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "location": {
+            "type": "string",
+            "pattern": "^LOC_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Location"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "reads": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reads"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "location",
+          "summary",
+          "text",
+          "reads"
+        ],
+        "title": "EvidenceOut"
+      },
+      "ExchangeOut": {
+        "properties": {
+          "detective": {
+            "type": "string",
+            "title": "Detective"
+          },
+          "suspect": {
+            "type": "string",
+            "title": "Suspect"
+          },
+          "demeanor": {
+            "type": "string",
+            "title": "Demeanor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detective",
+          "suspect",
+          "demeanor"
+        ],
+        "title": "ExchangeOut"
+      },
+      "FactLearnedOut": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "fact_learned",
+            "title": "Type",
+            "default": "fact_learned"
+          },
+          "fact": {
+            "type": "string",
+            "pattern": "^F_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Fact"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fact",
+          "statement",
+          "source"
+        ],
+        "title": "FactLearnedOut"
+      },
+      "GameOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "easy",
+              "normal",
+              "hard"
+            ],
+            "title": "Difficulty"
+          },
+          "help": {
+            "$ref": "#/components/schemas/DifficultyProfile"
+          },
+          "over": {
+            "type": "boolean",
+            "title": "Over"
+          },
+          "current_suspect": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Suspect"
+          },
+          "suspects": {
+            "items": {
+              "$ref": "#/components/schemas/SuspectOut"
+            },
+            "type": "array",
+            "title": "Suspects"
+          },
+          "locations": {
+            "items": {
+              "$ref": "#/components/schemas/LocationOut"
+            },
+            "type": "array",
+            "title": "Locations"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceOut"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "notebook": {
+            "items": {
+              "$ref": "#/components/schemas/NotebookEntryOut"
+            },
+            "type": "array",
+            "title": "Notebook"
+          },
+          "statements": {
+            "items": {
+              "$ref": "#/components/schemas/StatementOut"
+            },
+            "type": "array",
+            "title": "Statements"
+          },
+          "interviews": {
+            "patternProperties": {
+              "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$": {
+                "items": {
+                  "$ref": "#/components/schemas/ExchangeOut"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object",
+            "title": "Interviews"
+          },
+          "tokens": {
+            "$ref": "#/components/schemas/TokensOut"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResultOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "difficulty",
+          "help",
+          "over",
+          "current_suspect",
+          "suspects",
+          "locations",
+          "evidence",
+          "notebook",
+          "statements",
+          "interviews",
+          "tokens",
+          "result"
+        ],
+        "title": "GameOut",
+        "description": "The whole of one game as the player sees it, after every action (D44)."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LieCaughtOut": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "lie_caught",
+            "title": "Type",
+            "default": "lie_caught"
+          },
+          "suspect": {
+            "type": "string",
+            "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Suspect"
+          },
+          "lie": {
+            "type": "string",
+            "pattern": "^LIE_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Lie"
+          },
+          "claim": {
+            "type": "string",
+            "title": "Claim"
+          },
+          "evidence": {
+            "type": "string",
+            "pattern": "^E\\d{2}$",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "suspect",
+          "lie",
+          "claim",
+          "evidence"
+        ],
+        "title": "LieCaughtOut"
+      },
+      "LieOnRecordOut": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "lie_on_record",
+            "title": "Type",
+            "default": "lie_on_record"
+          },
+          "suspect": {
+            "type": "string",
+            "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Suspect"
+          },
+          "lie": {
+            "type": "string",
+            "pattern": "^LIE_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Lie"
+          },
+          "claim": {
+            "type": "string",
+            "title": "Claim"
+          }
+        },
+        "type": "object",
+        "required": [
+          "suspect",
+          "lie",
+          "claim"
+        ],
+        "title": "LieOnRecordOut"
+      },
+      "LineOut": {
+        "properties": {
+          "suspect": {
+            "type": "string",
+            "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Suspect"
+          },
+          "dialogue": {
+            "type": "string",
+            "title": "Dialogue"
+          },
+          "demeanor": {
+            "type": "string",
+            "title": "Demeanor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "suspect",
+          "dialogue",
+          "demeanor"
+        ],
+        "title": "LineOut",
+        "description": "What the suspect said. Already checked by the guard and grounding (D45)."
+      },
+      "LocationOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^LOC_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "accessible": {
+            "type": "boolean",
+            "title": "Accessible"
+          },
+          "searched": {
+            "type": "boolean",
+            "title": "Searched"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "accessible",
+          "searched"
+        ],
+        "title": "LocationOut"
+      },
+      "LocationSearchedOut": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "location_searched",
+            "title": "Type",
+            "default": "location_searched"
+          },
+          "location": {
+            "type": "string",
+            "pattern": "^LOC_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Location"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "name"
+        ],
+        "title": "LocationSearchedOut"
+      },
+      "NewGame": {
+        "properties": {
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "easy",
+              "normal",
+              "hard"
+            ],
+            "title": "Difficulty",
+            "default": "normal"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "NewGame"
+      },
+      "NotebookEntryOut": {
+        "properties": {
+          "fact": {
+            "type": "string",
+            "pattern": "^F_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Fact"
+          },
+          "statement": {
+            "type": "string",
+            "title": "Statement"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "source_name": {
+            "type": "string",
+            "title": "Source Name"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TimeOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "fact",
+          "statement",
+          "source",
+          "source_name",
+          "time"
+        ],
+        "title": "NotebookEntryOut"
+      },
+      "OptionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "title": "OptionOut"
+      },
+      "PersonOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "age": {
+            "type": "integer",
+            "title": "Age"
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "victim",
+              "suspect"
+            ],
+            "title": "Role"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "age",
+          "bio",
+          "role"
+        ],
+        "title": "PersonOut"
+      },
+      "ResultOut": {
+        "properties": {
+          "culprit": {
+            "type": "integer",
+            "title": "Culprit"
+          },
+          "motive": {
+            "type": "integer",
+            "title": "Motive"
+          },
+          "method": {
+            "type": "integer",
+            "title": "Method"
+          },
+          "evidence": {
+            "type": "integer",
+            "title": "Evidence"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "groups_covered": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Groups Covered"
+          },
+          "epilogue": {
+            "type": "string",
+            "title": "Epilogue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "culprit",
+          "motive",
+          "method",
+          "evidence",
+          "total",
+          "groups_covered",
+          "epilogue"
+        ],
+        "title": "ResultOut"
+      },
+      "SearchRequest": {
+        "properties": {
+          "location": {
+            "type": "string",
+            "pattern": "^LOC_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Location"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location"
+        ],
+        "title": "SearchRequest"
+      },
+      "ShowRequest": {
+        "properties": {
+          "evidence": {
+            "type": "string",
+            "pattern": "^E\\d{2}$",
+            "title": "Evidence"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "evidence"
+        ],
+        "title": "ShowRequest",
+        "description": "Shown to the suspect currently being interviewed."
+      },
+      "StatementOut": {
+        "properties": {
+          "lie": {
+            "type": "string",
+            "pattern": "^LIE_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Lie"
+          },
+          "suspect": {
+            "type": "string",
+            "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Suspect"
+          },
+          "claim": {
+            "type": "string",
+            "title": "Claim"
+          },
+          "caught": {
+            "type": "boolean",
+            "title": "Caught"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lie",
+          "suspect",
+          "claim",
+          "caught"
+        ],
+        "title": "StatementOut",
+        "description": "A lie the suspect has put on record. ``caught`` once evidence disproves it."
+      },
+      "SuspectOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "interviewed": {
+            "type": "boolean",
+            "title": "Interviewed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "interviewed"
+        ],
+        "title": "SuspectOut"
+      },
+      "TalkRequest": {
+        "properties": {
+          "suspect": {
+            "type": "string",
+            "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$",
+            "title": "Suspect"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "suspect"
+        ],
+        "title": "TalkRequest"
+      },
+      "TimeOut": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "title": "Start"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "approx": {
+            "type": "boolean",
+            "title": "Approx"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "approx"
+        ],
+        "title": "TimeOut"
+      },
+      "TokensOut": {
+        "properties": {
+          "used": {
+            "type": "integer",
+            "title": "Used"
+          },
+          "budget": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget"
+          }
+        },
+        "type": "object",
+        "required": [
+          "used",
+          "budget"
+        ],
+        "title": "TokensOut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

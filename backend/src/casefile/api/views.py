@@ -22,7 +22,7 @@ from casefile.engine.events import (
     LocationSearched,
 )
 from casefile.engine.state import GameState, Source
-from casefile.session import GameSession, Reply
+from casefile.session import MAX_PLAYER_CHARS, GameSession, Reply
 
 from .schemas import (
     AccusationOptionsOut,
@@ -75,6 +75,7 @@ def case_view(engine: Engine, ai: str) -> CaseOut:
             max_evidence=options.max_evidence,
         ),
         ai=ai,
+        max_question_chars=MAX_PLAYER_CHARS,
     )
 
 

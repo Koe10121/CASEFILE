@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/* Night at Blackwood Manor: near-black, case-file paper, one alarm red. */
+@theme {
+  --color-night-950: #0b0b0d;
+  --color-night-900: #121216;
+  --color-night-800: #1b1b21;
+  --color-night-700: #2a2a33;
+  --color-night-500: #5c5c6b;
+  --color-paper-100: #ece6d9;
+  --color-paper-300: #bdb6a6;
+  --color-alarm-500: #c8372d;
+  --color-alarm-400: #e0584d;
+  --color-brass-400: #c9a45c;
+
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    background: var(--color-night-950);
+    color: var(--color-paper-100);
+  }
+  body {
+    @apply min-h-dvh font-sans antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brass-400);
+    outline-offset: 2px;
+  }
+}
