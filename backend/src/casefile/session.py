@@ -12,6 +12,9 @@ never trusted as a source of facts (D14).
 """
 
 from dataclasses import dataclass, field
+from typing import Self
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from casefile.ai.contract import Exchange, Usage
 from casefile.ai.grounding import ground, speaker_words
@@ -58,6 +61,21 @@ class Reply:
     usage: Usage
 
 
+class SavedGame(BaseModel):
+    """Everything needed to pick a game up again (D53). The state itself isn't saved:
+    replaying ``log`` rebuilds it (D25), so a save can't hold a state the rules
+    wouldn't reach."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    detective: str | None
+    log: tuple[LogEntry, ...]
+    transcripts: dict[CharacterId, tuple[Exchange, ...]]
+    current_suspect: CharacterId | None
+    tokens_used: int = Field(ge=0)
+    """Carried over so a restart doesn't refill the token budget."""
+
+
 class BudgetExhaustedError(IllegalActionError):
     """The session has spent its model tokens. Injection defence layer 6, and a cost cap."""
 
@@ -82,6 +100,31 @@ class GameSession:
         except KeyError:
             raise IllegalActionError(f"there is no detective identity {self.detective!r}") from None
         self.state = self.engine.new_game()
+
+    # ------------------------------------------------------------ save and resume
+
+    def save(self) -> SavedGame:
+        return SavedGame(
+            detective=self.detective,
+            log=tuple(self.log),
+            transcripts={s: tuple(t) for s, t in self.transcripts.items()},
+            current_suspect=self.current_suspect,
+            tokens_used=self.tokens_used,
+        )
+
+    @classmethod
+    def resume(
+        cls, engine: Engine, provider: NpcProvider, token_budget: int | None, saved: SavedGame
+    ) -> Self:
+        """Rebuild a saved game by replaying its log. Raises ``IllegalActionError`` if the
+        log no longer replays, e.g. because the case file changed since it was saved."""
+        session = cls(engine, provider, token_budget, saved.detective)
+        session.state = engine.replay(saved.log)
+        session.log = list(saved.log)
+        session.transcripts = {s: list(t) for s, t in saved.transcripts.items()}
+        session.current_suspect = saved.current_suspect
+        session.tokens_used = saved.tokens_used
+        return session
 
     # ------------------------------------------------------------ player actions
 

@@ -86,7 +86,8 @@ watch(
     <div v-if="lost" class="mx-auto mt-20 max-w-md text-center">
       <p class="font-serif text-2xl">This case file is gone.</p>
       <p class="mt-2 text-sm text-paper-300">
-        The server forgets games when it restarts or after two hours idle. Saving games is coming.
+        Saved games are kept for 30 days after they were last played, and only on the server that
+        started them.
       </p>
       <RouterLink
         to="/"
