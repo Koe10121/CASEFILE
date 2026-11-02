@@ -235,3 +235,12 @@ def test_token_budget_stops_the_session(engine: Engine) -> None:
     with pytest.raises(BudgetExhaustedError):
         session.ask("And then?")
     assert npc.calls == 3
+
+
+def test_the_suspect_is_told_who_the_detective_is(engine: Engine) -> None:
+    state = engine.new_game()
+    assert build_briefing(engine, state, RICHARD).detective == "DI Rhea Voss (she/her)"
+    chosen = build_briefing(engine, state, RICHARD, "nonbinary")
+    assert chosen.detective == "DI Rae Voss (they/them)"
+    with pytest.raises(IllegalActionError):
+        GameSession(engine, MockNpc(), detective="wizard")

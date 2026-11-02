@@ -13,6 +13,19 @@ def make_provider(ai: Ai, settings: Settings) -> tuple[NpcProvider, int | None]:
         case "mock":
             return MockNpc(), None
         case "ollama":
-            return OllamaNpc(settings), settings.session_token_budget
+            return OllamaNpc(settings), settings.local_session_token_budget
         case "claude":
             return ClaudeNpc(settings), settings.session_token_budget
+
+
+def setup_problem(ai: Ai, settings: Settings) -> str | None:
+    """What the player must fix before this provider can play, or ``None``."""
+    match ai:
+        case "mock":
+            return None
+        case "ollama":
+            return OllamaNpc(settings).problem()
+        case "claude":
+            if settings.anthropic_api_key is None:
+                return "--ai claude needs ANTHROPIC_API_KEY (see backend/.env.example)"
+            return None

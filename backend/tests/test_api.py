@@ -3,6 +3,7 @@
 import json
 import re
 from collections.abc import Iterator, Sequence
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -12,7 +13,7 @@ from httpx2 import Response
 from casefile.ai.contract import Exchange, NpcReply, NpcTurn, ProviderError, Usage
 from casefile.ai.mock import MockNpc
 from casefile.ai.provider import NpcProvider
-from casefile.api.app import create_app
+from casefile.api.app import create_app, main
 from casefile.api.store import GameBusyError, GameNotFoundError, GameStore, StoreFullError
 from casefile.case import CaseBundle
 from casefile.engine import Engine
@@ -96,6 +97,8 @@ def test_the_case_is_winnable_over_http(client: TestClient, blackwood: CaseBundl
     assert final["events"][-1] == {"type": "accusation_scored", "total": 100}
     assert final["game"]["over"] is True
     assert final["game"]["result"]["total"] == 100
+    out_of = final["game"]["result"]["out_of"]
+    assert sum(out_of.values()) == 100
     assert final["game"]["result"]["epilogue"] == blackwood.solution.epilogue
 
     # The accusation is final (D10), and a finished game makes no model calls.
@@ -132,6 +135,7 @@ def test_the_case_cover(client: TestClient, blackwood: CaseBundle) -> None:
     case = ok(client.get("/api/case"))
     assert case["title"] == blackwood.case.title
     assert case["ai"] == "mock"
+    assert case["max_question_chars"] == MAX_PLAYER_CHARS
     assert len(case["accusation"]["motives"]) == len(blackwood.case.accusation_options.motives)
 
 
@@ -278,7 +282,10 @@ class Clock:
 def make_store(blackwood: CaseBundle, clock: Clock, max_games: int = 2) -> GameStore:
     engine = Engine(blackwood)
     return GameStore(
-        lambda: GameSession(engine, MockNpc()), max_games=max_games, idle_ttl_s=60, clock=clock
+        lambda d: GameSession(engine, MockNpc(), detective=d),
+        max_games=max_games,
+        idle_ttl_s=60,
+        clock=clock,
     )
 
 
@@ -306,3 +313,48 @@ def test_idle_games_expire_but_busy_ones_do_not(blackwood: CaseBundle) -> None:
     with store.use(busy):
         pass
     assert len(store) == 2
+
+
+def test_the_schema_can_be_written_for_the_frontend(tmp_path: Path) -> None:
+    out = tmp_path / "openapi.json"
+    main(["--openapi", str(out)])
+    schema = json.loads(out.read_text(encoding="utf-8"))
+    assert "/api/games/{game_id}/ask" in schema["paths"]
+    assert "GameOut" in schema["components"]["schemas"]
+
+
+@pytest.mark.parametrize(("difficulty", "flagged"), [("easy", True), ("normal", False)])
+def test_easy_flags_a_claim_that_held_evidence_disproves(
+    client: TestClient, difficulty: str, flagged: bool
+) -> None:
+    game_id = new_game(client, difficulty)
+    for verb, body in WINNING_RUN[:5]:  # up to meeting Victoria, with the wall panel held
+        game = ok(act(client, game_id, verb, body))["game"]
+    flags = {s["lie"]: s["flagged"] for s in game["statements"]}
+    assert flags["LIE_VICTORIA_NO_CONTACT"] is flagged
+    assert flags["LIE_THOMAS_PANTRY"] is False  # nothing held disproves it yet
+
+    game = ok(act(client, game_id, "show", {"evidence": "E05"}))["game"]
+    caught = {s["lie"]: s for s in game["statements"]}["LIE_VICTORIA_NO_CONTACT"]
+    assert caught["caught"] is True
+    assert caught["flagged"] is False  # a caught lie needs no flag
+
+
+def test_the_player_chooses_who_the_detective_is(client: TestClient, blackwood: CaseBundle) -> None:
+    cover = ok(client.get("/api/case"))["detective"]
+    assert [i["id"] for i in cover["identities"]] == ["woman", "man", "nonbinary"]
+
+    default = ok(client.get(f"/api/games/{new_game(client)}"))
+    assert default["detective"]["name"] == "DI Rhea Voss"
+
+    response = client.post("/api/games", json={"detective": "man"})
+    assert response.status_code == 201
+    assert response.json()["detective"] == {
+        "id": "man",
+        "label": "Man",
+        "name": "DI Rhys Voss",
+        "pronouns": "he/him",
+        "bio": blackwood.case.detective.identity("man").bio,
+    }
+    unknown = client.post("/api/games", json={"detective": "wizard"})
+    assert unknown.status_code == 409

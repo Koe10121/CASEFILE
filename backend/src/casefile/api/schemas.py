@@ -29,6 +29,8 @@ class _In(BaseModel):
 
 class NewGame(_In):
     difficulty: Difficulty = "normal"
+    detective: str | None = None
+    """A detective identity ID from the case cover (D51). ``None``: the case default."""
 
 
 class TalkRequest(_In):
@@ -57,10 +59,20 @@ class AccuseRequest(_In):
 # ------------------------------------------------------------------ the case
 
 
-class DetectiveOut(_Out):
+class IdentityOut(_Out):
+    """One way to play the detective: same case, different name and pronouns (D51)."""
+
+    id: str
+    label: str
     name: str
-    callsign: str
+    pronouns: str
     bio: str
+
+
+class DetectiveOut(_Out):
+    callsign: str
+    identities: tuple[IdentityOut, ...]
+    """The first is the default."""
 
 
 class PersonOut(_Out):
@@ -96,6 +108,8 @@ class CaseOut(_Out):
     accusation: AccusationOptionsOut
     ai: str
     """Who plays the suspects on this server: ``mock``, ``ollama`` or ``claude``."""
+    max_question_chars: int
+    """The longest question the server accepts, so the UI can count down to it."""
 
 
 # ------------------------------------------------------------------ one game
@@ -115,6 +129,8 @@ class NotebookEntryOut(_Out):
     """An evidence ID or a suspect ID: where the player learned it."""
     source_name: str
     time: TimeOut | None
+    subjects: tuple[CharacterId, ...]
+    """Who the fact is about, so the notebook can group it by person."""
 
 
 class LocationOut(_Out):
@@ -149,6 +165,9 @@ class StatementOut(_Out):
     suspect: CharacterId
     claim: str
     caught: bool
+    flagged: bool
+    """Easy only (``contradictions: auto_flag``): evidence the player holds already
+    disproves this standing claim. Always false on other difficulties (D48)."""
 
 
 class ExchangeOut(_Out):
@@ -158,12 +177,21 @@ class ExchangeOut(_Out):
     demeanor: str
 
 
+class PointsOut(_Out):
+    culprit: int
+    motive: int
+    method: int
+    evidence: int
+
+
 class ResultOut(_Out):
     culprit: int
     motive: int
     method: int
     evidence: int
     total: int
+    out_of: PointsOut
+    """The most each part can score, from the case's scoring rules."""
     groups_covered: tuple[str, ...]
     epilogue: str
 
@@ -178,6 +206,8 @@ class GameOut(_Out):
 
     id: str
     difficulty: Difficulty
+    detective: IdentityOut
+    """Who the player is in this game."""
     help: DifficultyProfile
     """What the chosen difficulty turns on in the UI (D11). The truth never changes."""
     over: bool

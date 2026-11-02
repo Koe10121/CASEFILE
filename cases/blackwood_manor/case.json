@@ -12,9 +12,32 @@
     "intro": "Halloween. A storm has taken the mobile mast. At 22:45 Arthur Blackwood was found dead in his soundproofed study. Everyone in the house heard him alive at 22:25. You arrive at 23:40."
   },
   "detective": {
-    "name": "DI Rhea Voss",
+    "rank": "DI",
+    "surname": "Voss",
     "callsign": "Nightjar",
-    "bio": "North Yorkshire Major Crimes. Takes the calls that come in after midnight. Former digital forensics; wears her late father's wind-up watch because she does not trust a clock that can be told what time it is."
+    "identities": [
+      {
+        "id": "woman",
+        "label": "Woman",
+        "first_name": "Rhea",
+        "pronouns": "she/her",
+        "bio": "North Yorkshire Major Crimes. Takes the calls that come in after midnight. Former digital forensics; wears her late father's wind-up watch because she does not trust a clock that can be told what time it is."
+      },
+      {
+        "id": "man",
+        "label": "Man",
+        "first_name": "Rhys",
+        "pronouns": "he/him",
+        "bio": "North Yorkshire Major Crimes. Takes the calls that come in after midnight. Former digital forensics; wears his late father's wind-up watch because he does not trust a clock that can be told what time it is."
+      },
+      {
+        "id": "nonbinary",
+        "label": "Non-binary",
+        "first_name": "Rae",
+        "pronouns": "they/them",
+        "bio": "North Yorkshire Major Crimes. Takes the calls that come in after midnight. Former digital forensics; wears their late father's wind-up watch because they do not trust a clock that can be told what time it is."
+      }
+    ]
   },
   "world": {
     "present": [

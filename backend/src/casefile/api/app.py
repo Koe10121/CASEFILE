@@ -1,7 +1,8 @@
 """The HTTP API: a thin JSON layer over ``GameSession`` (D43).
 
-    uv run casefile-api                  # http://127.0.0.1:8000, scripted suspects
-    uv run casefile-api --ai ollama      # a local model plays them: free
+    uv run casefile-api                  # http://127.0.0.1:8000, a local model (Ollama): free
+    uv run casefile-api --ai mock        # scripted suspects: no setup at all
+    uv run casefile-api --openapi ../frontend/openapi.json   # write the API schema
 
 Interactive docs at ``/docs``. Every action answers with what the suspect said, what
 happened, and the whole game as the player now sees it, so the browser never has to
@@ -9,6 +10,8 @@ work out game state for itself: the backend owns the truth.
 """
 
 import argparse
+import json
+from pathlib import Path
 from typing import get_args
 
 import uvicorn
@@ -16,7 +19,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from casefile.ai.contract import ProviderError
-from casefile.ai.factory import make_provider
+from casefile.ai.factory import make_provider, setup_problem
 from casefile.ai.provider import NpcProvider
 from casefile.case.validation import load_valid_case
 from casefile.cli import DEFAULT_CASE
@@ -55,7 +58,7 @@ def create_app(
 ) -> FastAPI:
     app = FastAPI(title="CASEFILE", version="0.1.0", responses=_ERRORS)
     store = GameStore(
-        lambda: GameSession(engine, provider, token_budget),
+        lambda detective: GameSession(engine, provider, token_budget, detective),
         max_games=max_games,
         idle_ttl_s=idle_ttl_s,
     )
@@ -78,7 +81,7 @@ def create_app(
 
     @app.post("/api/games", status_code=201)
     def new_game(body: NewGame) -> GameOut:
-        game_id = store.create(body.difficulty)
+        game_id = store.create(body.difficulty, body.detective)
         with store.use(game_id) as game:
             return game_view(game_id, game.difficulty, game.session)
 
@@ -152,9 +155,15 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--ai", choices=get_args(Ai), default=settings.ai)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument(
+        "--openapi", type=Path, metavar="FILE", help="write the OpenAPI schema to FILE and exit"
+    )
     args = parser.parse_args(argv)
-    if args.ai == "claude" and settings.anthropic_api_key is None:
-        parser.error("--ai claude needs ANTHROPIC_API_KEY (see backend/.env.example)")
+    if args.openapi is not None:
+        args.ai = "mock"  # the schema is the same whoever plays the suspects
+    problem = setup_problem(args.ai, settings)
+    if problem is not None:
+        parser.error(problem)
     provider, budget = make_provider(args.ai, settings)
     app = create_app(
         Engine(load_valid_case(DEFAULT_CASE)),
@@ -164,4 +173,8 @@ def main(argv: list[str] | None = None) -> None:
         max_games=settings.max_games,
         idle_ttl_s=settings.game_idle_minutes * 60,
     )
+    if args.openapi is not None:
+        # Written as UTF-8 by Python, not piped: PowerShell 5 redirects as UTF-16.
+        args.openapi.write_text(json.dumps(app.openapi(), indent=2) + "\n", encoding="utf-8")
+        return
     uvicorn.run(app, host=args.host, port=args.port)

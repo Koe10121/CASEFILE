@@ -34,10 +34,46 @@ class Setting(CaseModel):
     intro: NonEmptyStr
 
 
-class Detective(CaseModel):
-    name: NonEmptyStr
-    callsign: NonEmptyStr
+IdentityId = Annotated[str, StringConstraints(pattern=r"^[a-z]+(?:_[a-z]+)*$")]
+
+
+class DetectiveIdentity(CaseModel):
+    """One way the player can play the detective (D51). Only the name, pronouns and bio
+    change; the case is the same."""
+
+    id: IdentityId
+    label: NonEmptyStr
+    """What the choice is called on the cover, e.g. "Woman"."""
+    first_name: NonEmptyStr
+    pronouns: NonEmptyStr
+    """As the suspects should use them, e.g. "she/her"."""
     bio: NonEmptyStr
+
+
+class Detective(CaseModel):
+    """The player character. The first identity is the default."""
+
+    rank: NonEmptyStr
+    surname: NonEmptyStr
+    callsign: NonEmptyStr
+    identities: tuple[DetectiveIdentity, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _unique(self) -> "Detective":
+        require_unique((i.id for i in self.identities), "detective identity")
+        return self
+
+    def identity(self, identity_id: str | None = None) -> DetectiveIdentity:
+        """The identity with this ID, or the default. Raises ``KeyError`` if unknown."""
+        if identity_id is None:
+            return self.identities[0]
+        for identity in self.identities:
+            if identity.id == identity_id:
+                return identity
+        raise KeyError(identity_id)
+
+    def full_name(self, identity: DetectiveIdentity) -> str:
+        return f"{self.rank} {identity.first_name} {self.surname}"
 
 
 class World(CaseModel):

@@ -6,7 +6,7 @@
 
 Halloween, Saturday 31 October 2026, on the North Yorkshire moors. Arthur Blackwood (61), founder of Blackwood Systems, maker of the HALDEN smart-home assistant, is found dead in his soundproofed study at 22:45. He is slumped in his chair with his headset on, facing the dark window. Every door logs who opens it, and every room has an intercom. A storm has taken out the mobile mast. Everyone in the house heard Arthur alive at 22:25.
 
-The player is **DI Rhea Voss, call sign "Nightjar"**, North Yorkshire Major Crimes. She takes the calls that come in after midnight. She is former digital forensics and wears her late father's wind-up watch, because she won't trust a clock that can be told what time it is. She arrives at 23:40.
+The player is **DI Voss, call sign "Nightjar"**, North Yorkshire Major Crimes: Rhea (she/her) by default, or Rhys (he/him) or Rae (they/them), as the player chooses (D51). The description below uses the default. She takes the calls that come in after midnight. She is former digital forensics and wears her late father's wind-up watch, because she won't trust a clock that can be told what time it is. She arrives at 23:40.
 
 | Character | Role | Secret |
 | --- | --- | --- |

@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import get_args
 
 from casefile.ai.contract import ProviderError
-from casefile.ai.factory import make_provider
+from casefile.ai.factory import make_provider, setup_problem
 from casefile.ai.prompt import stable_instructions, turn_state
 from casefile.case.validation import load_valid_case
 from casefile.engine.briefing import build_briefing
@@ -289,8 +289,9 @@ def main(argv: list[str] | None = None) -> None:
     if args.model:
         key = "claude_model" if args.ai == "claude" else "ollama_model"
         settings = settings.model_copy(update={key: args.model})
-    if args.ai == "claude" and settings.anthropic_api_key is None:
-        parser.error("--ai claude needs ANTHROPIC_API_KEY (see backend/.env.example)")
+    problem = setup_problem(args.ai, settings)
+    if problem is not None:
+        parser.error(problem)
     name = {"mock": "mock", "ollama": settings.ollama_model, "claude": settings.claude_model}[
         args.ai
     ]

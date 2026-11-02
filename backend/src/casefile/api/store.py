@@ -45,7 +45,7 @@ class StoredGame:
 class GameStore:
     def __init__(
         self,
-        new_session: Callable[[], GameSession],
+        new_session: Callable[[str | None], GameSession],
         *,
         max_games: int,
         idle_ttl_s: float,
@@ -58,13 +58,14 @@ class GameStore:
         self._games: dict[str, StoredGame] = {}
         self._lock = threading.Lock()
 
-    def create(self, difficulty: Difficulty) -> str:
+    def create(self, difficulty: Difficulty, detective: str | None = None) -> str:
         with self._lock:
             self._drop_idle()
             if len(self._games) >= self._max_games:
                 raise StoreFullError("the server is full; try again later")
+            session = self._new_session(detective)  # raises on an unknown identity
             game_id = secrets.token_urlsafe(16)
-            self._games[game_id] = StoredGame(self._new_session(), difficulty, self._clock())
+            self._games[game_id] = StoredGame(session, difficulty, self._clock())
             return game_id
 
     @contextmanager

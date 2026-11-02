@@ -18,8 +18,9 @@ class Settings(BaseSettings):
         env_file=".env", env_prefix="CASEFILE_", extra="ignore", frozen=True
     )
 
-    ai: Ai = "mock"
-    """Who plays the suspects: scripted (free, no setup), a local model (free), or Claude."""
+    ai: Ai = "ollama"
+    """Who plays the suspects: a local model (free, the default, D50), Claude, or scripted
+    suspects (``mock``: no setup at all, and what the tests use)."""
 
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.1:8b"
@@ -33,7 +34,10 @@ class Settings(BaseSettings):
     show the suspect losing track of its lies."""
     max_output_tokens: int = Field(default=2048, gt=0)
     session_token_budget: int = Field(default=400_000, gt=0)
-    """Hard cap on model tokens (input + output) per game session."""
+    """Hard cap on Claude tokens (input + output) per game session: a cost cap."""
+    local_session_token_budget: int = Field(default=2_000_000, gt=0)
+    """The same cap for a local model, where tokens cost nothing but GPU time. Still
+    capped so a runaway or jailbreak-spamming session ends (D49)."""
     request_timeout_s: float = Field(default=120.0, gt=0)
     """Generous because a local model on a laptop can take a while per reply."""
 

@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict
 
 from casefile.case.conditions import holds
 from casefile.case.ids import CharacterId, EvidenceId, FactId, LieId
+from casefile.case.world import Detective
 from casefile.engine.engine import Engine
 from casefile.engine.state import GameState
 
@@ -63,7 +64,10 @@ class SuspectBriefing(_Brief):
     """Guarded facts, second person. Empty for everyone but the culprit."""
 
 
-def build_briefing(engine: Engine, state: GameState, suspect: CharacterId) -> SuspectBriefing:
+def build_briefing(
+    engine: Engine, state: GameState, suspect: CharacterId, detective: str | None = None
+) -> SuspectBriefing:
+    """``detective`` is the identity the player chose (D51); ``None`` is the case default."""
     ix = engine.index
     case = ix.bundle.case
     b = ix.briefings[suspect]
@@ -85,7 +89,7 @@ def build_briefing(engine: Engine, state: GameState, suspect: CharacterId) -> Su
         voice=b.persona.voice,
         sample_lines=b.persona.sample_lines,
         demeanor=b.breaking_point.demeanor if broken else b.persona.default_demeanor,
-        detective=case.detective.name,
+        detective=_detective(case.detective, detective),
         setting=f"{case.setting.place}, {case.setting.date:%A %d %B %Y}. {case.setting.intro}",
         present=tuple(ix.characters[c].name for c in case.world.present),
         offstage=case.world.offstage,
@@ -106,3 +110,9 @@ def build_briefing(engine: Engine, state: GameState, suspect: CharacterId) -> Su
         if suspect == ix.bundle.solution.culprit
         else (),
     )
+
+
+def _detective(detective: Detective, identity_id: str | None) -> str:
+    """Name and pronouns, so the suspect refers to the detective the way the player chose."""
+    identity = detective.identity(identity_id)
+    return f"{detective.full_name(identity)} ({identity.pronouns})"
