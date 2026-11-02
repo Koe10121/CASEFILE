@@ -117,6 +117,8 @@ class NotebookEntryOut(_Out):
     """An evidence ID or a suspect ID: where the player learned it."""
     source_name: str
     time: TimeOut | None
+    subjects: tuple[CharacterId, ...]
+    """Who the fact is about, so the notebook can group it by person."""
 
 
 class LocationOut(_Out):
@@ -151,6 +153,9 @@ class StatementOut(_Out):
     suspect: CharacterId
     claim: str
     caught: bool
+    flagged: bool
+    """Easy only (``contradictions: auto_flag``): evidence the player holds already
+    disproves this standing claim. Always false on other difficulties (D48)."""
 
 
 class ExchangeOut(_Out):
@@ -160,12 +165,21 @@ class ExchangeOut(_Out):
     demeanor: str
 
 
+class PointsOut(_Out):
+    culprit: int
+    motive: int
+    method: int
+    evidence: int
+
+
 class ResultOut(_Out):
     culprit: int
     motive: int
     method: int
     evidence: int
     total: int
+    out_of: PointsOut
+    """The most each part can score, from the case's scoring rules."""
     groups_covered: tuple[str, ...]
     epilogue: str
 

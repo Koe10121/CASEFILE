@@ -25,3 +25,8 @@ export interface ActionBodies {
   accuse: Schemas["AccuseRequest"];
 }
 export type Verb = keyof ActionBodies;
+export type NotebookEntry = Schemas["NotebookEntryOut"];
+export type Statement = Schemas["StatementOut"];
+export type Result = Schemas["ResultOut"];
+export type Help = Schemas["DifficultyProfile"];
+export type Accusation = Schemas["Accusation"];

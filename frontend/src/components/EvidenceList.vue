@@ -6,10 +6,8 @@ defineProps<{ evidence: readonly Evidence[] }>();
 
 <template>
   <section>
-    <h2 class="font-mono text-xs tracking-widest text-paper-300 uppercase">
-      Evidence <span class="text-night-500">({{ evidence.length }})</span>
-    </h2>
-    <ul class="mt-2 space-y-2">
+    <h2 class="sr-only">Evidence</h2>
+    <ul class="space-y-2">
       <li v-for="e in evidence" :key="e.id">
         <details class="group rounded border border-night-700 bg-night-900 open:border-night-500">
           <summary class="cursor-pointer list-none px-3 py-2 text-sm">

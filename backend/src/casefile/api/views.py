@@ -9,8 +9,8 @@ never leave it, and ``test_api.py`` checks that over a whole game.
 
 from casefile.case.base import TimeSpan
 from casefile.case.conditions import holds
-from casefile.case.ids import CharacterId, EvidenceId
-from casefile.case.rules import location_accessible
+from casefile.case.ids import CharacterId, EvidenceId, LieId
+from casefile.case.rules import catches, evidence_establishes, location_accessible
 from casefile.engine.engine import Engine
 from casefile.engine.events import (
     AccusationScored,
@@ -44,6 +44,7 @@ from .schemas import (
     NotebookEntryOut,
     OptionOut,
     PersonOut,
+    PointsOut,
     ResultOut,
     StatementOut,
     SuspectOut,
@@ -83,11 +84,12 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
     ix = session.engine.index
     state = session.state
     profiles = ix.bundle.case.difficulty_profiles
-    help_ = {"easy": profiles.easy, "normal": profiles.normal, "hard": profiles.hard}
+    help_ = {"easy": profiles.easy, "normal": profiles.normal, "hard": profiles.hard}[difficulty]
+    flag = help_.contradictions == "auto_flag"
     return GameOut(
         id=game_id,
         difficulty=difficulty,
-        help=help_[difficulty],
+        help=help_,
         over=state.is_over,
         current_suspect=session.current_suspect,
         suspects=tuple(
@@ -112,6 +114,7 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
                 source=entry.source,
                 source_name=_source_name(session.engine, entry.source),
                 time=_time(ix.facts[entry.fact].time),
+                subjects=ix.facts[entry.fact].subjects,
             )
             for entry in state.notebook
         ),
@@ -121,6 +124,7 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
                 suspect=ix.lies[lie_id].suspect,
                 claim=ix.lies[lie_id].lie.claim,
                 caught=lie_id in state.caught_lies,
+                flagged=flag and _disproved_by_held(session.engine, state, lie_id),
             )
             for lie_id in ix.lies  # case order, so the list doesn't reshuffle between turns
             if lie_id in state.told_lies
@@ -193,6 +197,19 @@ def _evidence(engine: Engine, state: GameState) -> tuple[EvidenceOut, ...]:
     )
 
 
+def _disproved_by_held(engine: Engine, state: GameState, lie_id: LieId) -> bool:
+    """Whether showing some held item would catch this lie now. Uses the engine's own
+    rule (D23), so the flag can never promise a catch that the engine would refuse."""
+    if lie_id in state.caught_lies:
+        return False
+    ix = engine.index
+    lie = ix.lies[lie_id].lie
+    return any(
+        catches(lie, evidence_establishes(ix.evidence[ev], state), ix.facts)
+        for ev in state.found_evidence
+    )
+
+
 def _source_name(engine: Engine, source: Source) -> str:
     ix = engine.index
     evidence = ix.evidence.get(EvidenceId(source))
@@ -213,12 +230,16 @@ def _result(engine: Engine, state: GameState) -> ResultOut | None:
     if state.final is None:
         return None
     score = state.final.score
+    rules = engine.index.bundle.solution.scoring
     return ResultOut(
         culprit=score.culprit,
         motive=score.motive,
         method=score.method,
         evidence=score.evidence,
         total=score.total,
+        out_of=PointsOut(
+            culprit=rules.culprit, motive=rules.motive, method=rules.method, evidence=rules.evidence
+        ),
         groups_covered=score.groups_covered,
         epilogue=engine.index.bundle.solution.epilogue,
     )

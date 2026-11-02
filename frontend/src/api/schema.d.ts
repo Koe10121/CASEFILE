@@ -439,6 +439,8 @@ export interface components {
       /** Source Name */
       source_name: string;
       time: components["schemas"]["TimeOut"] | null;
+      /** Subjects */
+      subjects: string[];
     };
     /** OptionOut */
     OptionOut: {
@@ -463,6 +465,17 @@ export interface components {
        */
       role: "victim" | "suspect";
     };
+    /** PointsOut */
+    PointsOut: {
+      /** Culprit */
+      culprit: number;
+      /** Motive */
+      motive: number;
+      /** Method */
+      method: number;
+      /** Evidence */
+      evidence: number;
+    };
     /** ResultOut */
     ResultOut: {
       /** Culprit */
@@ -475,6 +488,7 @@ export interface components {
       evidence: number;
       /** Total */
       total: number;
+      out_of: components["schemas"]["PointsOut"];
       /** Groups Covered */
       groups_covered: string[];
       /** Epilogue */
@@ -506,6 +520,8 @@ export interface components {
       claim: string;
       /** Caught */
       caught: boolean;
+      /** Flagged */
+      flagged: boolean;
     };
     /** SuspectOut */
     SuspectOut: {

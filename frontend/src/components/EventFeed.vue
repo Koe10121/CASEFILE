@@ -26,9 +26,11 @@ function describe(e: GameEvent): { mark: string; text: string; tone: string } {
 
 <template>
   <section>
-    <h2 class="font-mono text-xs tracking-widest text-paper-300 uppercase">What just happened</h2>
-    <p v-if="!events.length" class="mt-2 text-sm text-night-500">Nothing yet.</p>
-    <ol v-else class="mt-2 space-y-2" aria-live="polite">
+    <h2 class="sr-only">What just happened</h2>
+    <p v-if="!events.length" class="text-sm text-night-500">
+      What your questions, searches and evidence turn up appears here.
+    </p>
+    <ol v-else class="space-y-2" aria-live="polite">
       <li v-for="(item, i) in items" :key="i" class="flex gap-2 text-sm" :class="item.tone">
         <span aria-hidden="true" class="w-3 shrink-0 font-mono">{{ item.mark }}</span>
         <span>{{ item.text }}</span>

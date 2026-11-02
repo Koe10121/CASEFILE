@@ -1,18 +1,27 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
+import type { Accusation } from "../api/types";
+import AccusationForm from "../components/AccusationForm.vue";
 import CaseSidebar from "../components/CaseSidebar.vue";
-import EventFeed from "../components/EventFeed.vue";
-import EvidenceList from "../components/EvidenceList.vue";
+import CaseTabs from "../components/CaseTabs.vue";
 import InterviewRoom from "../components/InterviewRoom.vue";
+import ResultsPanel from "../components/ResultsPanel.vue";
 import { forgetGame } from "../game/lastGame";
 import { useGame } from "../game/useGame";
 
 const props = defineProps<{ id: string }>();
 const { cover, game, busy, error, lost, feed, fresh, suspect, load, act } = useGame(props.id);
+const accusing = ref(false);
 
 onMounted(load);
 
+const names = computed(() =>
+  Object.fromEntries((cover.value?.people ?? []).map((p) => [p.id, p.name])),
+);
+const victim = computed(
+  () => cover.value?.people.find((p) => p.role === "victim")?.name ?? "the victim",
+);
 const exchanges = computed(() => {
   const id = game.value?.current_suspect;
   return id ? (game.value?.interviews[id] ?? []) : [];
@@ -21,21 +30,44 @@ const freshIndex = computed(() =>
   fresh.value && fresh.value.suspect === game.value?.current_suspect ? fresh.value.index : null,
 );
 
-function startOver(): void {
-  forgetGame();
+async function accuse(accusation: Accusation): Promise<void> {
+  await act("accuse", { accusation });
 }
+
+// The accusation is final: once the server says the game is over, show the result.
+watch(
+  () => game.value?.over,
+  (over) => {
+    if (over) {
+      accusing.value = false;
+      forgetGame();
+    }
+  },
+);
 </script>
 
 <template>
   <div class="mx-auto flex min-h-dvh max-w-7xl flex-col px-4 py-4">
-    <header class="flex items-baseline justify-between gap-4 border-b border-night-700 pb-3">
+    <header
+      class="flex flex-wrap items-center justify-between gap-3 border-b border-night-700 pb-3"
+    >
       <RouterLink to="/" class="font-serif text-lg hover:text-brass-400">
         {{ cover?.title ?? "CASEFILE" }}
       </RouterLink>
-      <p v-if="game?.tokens.budget" class="font-mono text-xs text-night-500">
-        {{ Math.round((100 * game.tokens.used) / game.tokens.budget) }}% of this game's AI budget
-        used
-      </p>
+      <div class="flex items-center gap-4">
+        <p v-if="game?.tokens.budget" class="font-mono text-xs text-night-500">
+          {{ Math.round((100 * game.tokens.used) / game.tokens.budget) }}% of this game's AI budget
+          used
+        </p>
+        <button
+          v-if="game && !game.over && !accusing"
+          type="button"
+          class="rounded border border-alarm-500 px-4 py-1.5 text-sm text-alarm-400 hover:bg-alarm-500/10"
+          @click="accusing = true"
+        >
+          Make your accusation
+        </button>
+      </div>
     </header>
 
     <div v-if="lost" class="mx-auto mt-20 max-w-md text-center">
@@ -46,7 +78,7 @@ function startOver(): void {
       <RouterLink
         to="/"
         class="mt-6 inline-block rounded bg-alarm-500 px-5 py-2 text-paper-100"
-        @click="startOver"
+        @click="forgetGame"
       >
         Start again
       </RouterLink>
@@ -61,7 +93,17 @@ function startOver(): void {
         {{ error }}
       </p>
 
-      <div class="mt-4 grid flex-1 gap-6 lg:grid-cols-[14rem_1fr_20rem]">
+      <template v-if="game.result">
+        <ResultsPanel :result="game.result" />
+        <RouterLink
+          to="/"
+          class="mx-auto mb-10 rounded border border-night-700 px-5 py-2 text-paper-300 hover:border-night-500"
+        >
+          Back to the case file
+        </RouterLink>
+      </template>
+
+      <div v-else class="mt-4 grid flex-1 gap-6 lg:grid-cols-[14rem_1fr_22rem]">
         <!-- On a phone the interview comes first; the lists follow it. -->
         <CaseSidebar
           class="order-2 lg:order-none"
@@ -74,8 +116,22 @@ function startOver(): void {
           @search="(l) => act('search', { location: l })"
         />
 
+        <section
+          v-if="accusing"
+          class="order-1 rounded-lg border border-alarm-500/40 bg-night-900 p-5 lg:order-none"
+        >
+          <AccusationForm
+            :options="cover.accusation"
+            :victim="victim"
+            :names="names"
+            :evidence="game.evidence"
+            :busy="busy"
+            @accuse="accuse"
+            @cancel="accusing = false"
+          />
+        </section>
         <InterviewRoom
-          v-if="suspect"
+          v-else-if="suspect"
           class="order-1 h-[70dvh] lg:order-none lg:h-[calc(100dvh-7rem)]"
           :name="suspect.name"
           :exchanges="exchanges"
@@ -89,7 +145,7 @@ function startOver(): void {
         />
         <section
           v-else
-          class="order-1 flex items-center lg:order-none justify-center rounded-lg border border-dashed border-night-700 p-10 text-center"
+          class="order-1 flex items-center justify-center rounded-lg border border-dashed border-night-700 p-10 text-center lg:order-none"
         >
           <p class="max-w-sm font-serif text-lg text-paper-300">
             Choose someone to interview, or search the house. Everyone here is lying about
@@ -97,10 +153,15 @@ function startOver(): void {
           </p>
         </section>
 
-        <aside class="order-3 space-y-8 lg:order-none">
-          <EventFeed :events="feed" />
-          <EvidenceList :evidence="game.evidence" />
-        </aside>
+        <CaseTabs
+          class="order-3 lg:order-none"
+          :feed="feed"
+          :notebook="game.notebook"
+          :statements="game.statements"
+          :evidence="game.evidence"
+          :help="game.help"
+          :names="names"
+        />
       </div>
     </template>
 

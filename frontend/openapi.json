@@ -1524,6 +1524,14 @@
                 "type": "null"
               }
             ]
+          },
+          "subjects": {
+            "items": {
+              "type": "string",
+              "pattern": "^S_[A-Z0-9]+(?:_[A-Z0-9]+)*$"
+            },
+            "type": "array",
+            "title": "Subjects"
           }
         },
         "type": "object",
@@ -1532,7 +1540,8 @@
           "statement",
           "source",
           "source_name",
-          "time"
+          "time",
+          "subjects"
         ],
         "title": "NotebookEntryOut"
       },
@@ -1592,6 +1601,34 @@
         ],
         "title": "PersonOut"
       },
+      "PointsOut": {
+        "properties": {
+          "culprit": {
+            "type": "integer",
+            "title": "Culprit"
+          },
+          "motive": {
+            "type": "integer",
+            "title": "Motive"
+          },
+          "method": {
+            "type": "integer",
+            "title": "Method"
+          },
+          "evidence": {
+            "type": "integer",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "culprit",
+          "motive",
+          "method",
+          "evidence"
+        ],
+        "title": "PointsOut"
+      },
       "ResultOut": {
         "properties": {
           "culprit": {
@@ -1614,6 +1651,9 @@
             "type": "integer",
             "title": "Total"
           },
+          "out_of": {
+            "$ref": "#/components/schemas/PointsOut"
+          },
           "groups_covered": {
             "items": {
               "type": "string"
@@ -1633,6 +1673,7 @@
           "method",
           "evidence",
           "total",
+          "out_of",
           "groups_covered",
           "epilogue"
         ],
@@ -1688,6 +1729,10 @@
           "caught": {
             "type": "boolean",
             "title": "Caught"
+          },
+          "flagged": {
+            "type": "boolean",
+            "title": "Flagged"
           }
         },
         "type": "object",
@@ -1695,7 +1740,8 @@
           "lie",
           "suspect",
           "claim",
-          "caught"
+          "caught",
+          "flagged"
         ],
         "title": "StatementOut",
         "description": "A lie the suspect has put on record. ``caught`` once evidence disproves it."

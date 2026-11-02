@@ -97,6 +97,8 @@ def test_the_case_is_winnable_over_http(client: TestClient, blackwood: CaseBundl
     assert final["events"][-1] == {"type": "accusation_scored", "total": 100}
     assert final["game"]["over"] is True
     assert final["game"]["result"]["total"] == 100
+    out_of = final["game"]["result"]["out_of"]
+    assert sum(out_of.values()) == 100
     assert final["game"]["result"]["epilogue"] == blackwood.solution.epilogue
 
     # The accusation is final (D10), and a finished game makes no model calls.
@@ -316,3 +318,20 @@ def test_the_schema_can_be_written_for_the_frontend(tmp_path: Path) -> None:
     schema = json.loads(out.read_text(encoding="utf-8"))
     assert "/api/games/{game_id}/ask" in schema["paths"]
     assert "GameOut" in schema["components"]["schemas"]
+
+
+@pytest.mark.parametrize(("difficulty", "flagged"), [("easy", True), ("normal", False)])
+def test_easy_flags_a_claim_that_held_evidence_disproves(
+    client: TestClient, difficulty: str, flagged: bool
+) -> None:
+    game_id = new_game(client, difficulty)
+    for verb, body in WINNING_RUN[:5]:  # up to meeting Victoria, with the wall panel held
+        game = ok(act(client, game_id, verb, body))["game"]
+    flags = {s["lie"]: s["flagged"] for s in game["statements"]}
+    assert flags["LIE_VICTORIA_NO_CONTACT"] is flagged
+    assert flags["LIE_THOMAS_PANTRY"] is False  # nothing held disproves it yet
+
+    game = ok(act(client, game_id, "show", {"evidence": "E05"}))["game"]
+    caught = {s["lie"]: s for s in game["statements"]}["LIE_VICTORIA_NO_CONTACT"]
+    assert caught["caught"] is True
+    assert caught["flagged"] is False  # a caught lie needs no flag
