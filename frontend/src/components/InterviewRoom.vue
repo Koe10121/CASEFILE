@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue";
 
-import type { Evidence, Exchange } from "../api/types";
+import type { Evidence, Exchange, Expression } from "../api/types";
+import SuspectPortrait from "./SuspectPortrait.vue";
 import TypedLine from "./TypedLine.vue";
 
 const props = defineProps<{
+  id: string;
   name: string;
+  faces: readonly Expression[];
   exchanges: readonly Exchange[];
   freshIndex: number | null;
   evidence: readonly Evidence[];
@@ -20,6 +23,8 @@ const emit = defineEmits<{ ask: [text: string]; show: [evidence: string] }>();
 const question = ref("");
 const chosen = ref("");
 const log = ref<HTMLElement | null>(null);
+// The portrait follows the suspect's latest line.
+const expression = computed<Expression>(() => props.exchanges.at(-1)?.expression ?? "neutral");
 const remaining = computed(() => props.maxChars - question.value.length);
 const canAsk = computed(
   () => !props.busy && !props.over && question.value.trim().length > 0 && remaining.value >= 0,
@@ -55,9 +60,12 @@ watch(
 
 <template>
   <section class="flex min-h-0 flex-col rounded-lg border border-night-700 bg-night-900">
-    <header class="border-b border-night-700 px-5 py-3">
-      <p class="font-mono text-xs tracking-widest text-paper-300 uppercase">Interview</p>
-      <h2 class="font-serif text-2xl">{{ name }}</h2>
+    <header class="flex items-end gap-4 border-b border-night-700 px-5 py-3">
+      <SuspectPortrait :id="id" :name="name" :expression="expression" :faces="faces" />
+      <div>
+        <p class="font-mono text-xs tracking-widest text-paper-300 uppercase">Interview</p>
+        <h2 class="font-serif text-2xl">{{ name }}</h2>
+      </div>
     </header>
 
     <ol ref="log" class="flex-1 space-y-5 overflow-y-auto px-5 py-4" aria-live="polite">

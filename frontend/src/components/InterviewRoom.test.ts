@@ -6,9 +6,17 @@ import InterviewRoom from "./InterviewRoom.vue";
 function room(overrides: Record<string, unknown> = {}) {
   return mount(InterviewRoom, {
     props: {
+      id: "S_RICHARD",
       name: "Richard Okafor",
+      faces: [],
       exchanges: [
-        { detective: "", suspect: "I was in the billiard room.", demeanor: "hostile", shown: null },
+        {
+          detective: "",
+          suspect: "I was in the billiard room.",
+          demeanor: "hostile",
+          shown: null,
+          expression: "angry",
+        },
       ],
       freshIndex: null,
       evidence: [
@@ -79,5 +87,14 @@ describe("InterviewRoom", () => {
     });
     expect(wrapper.text()).toContain("You show Study door lock log.");
     expect(wrapper.text()).toContain("looks at it, and says nothing new");
+  });
+
+  it("shows the face that matches the latest line, or neutral if that one is missing", () => {
+    const withFace = room({ faces: ["neutral", "angry"] });
+    expect(withFace.get("img").attributes("src")).toBe("/api/portraits/S_RICHARD/angry");
+    const fallback = room({ faces: ["neutral"] });
+    expect(fallback.get("img").attributes("src")).toBe("/api/portraits/S_RICHARD/neutral");
+    expect(room().find("img").exists()).toBe(false); // no art yet: initials
+    expect(room().text()).toContain("RO");
   });
 });

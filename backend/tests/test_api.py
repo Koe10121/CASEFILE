@@ -14,6 +14,7 @@ from casefile.ai.contract import Exchange, NpcReply, NpcTurn, ProviderError, Usa
 from casefile.ai.mock import MockNpc
 from casefile.ai.provider import NpcProvider
 from casefile.api.app import create_app, main
+from casefile.api.portraits import Portraits
 from casefile.api.saves import SaveFile
 from casefile.api.store import GameBusyError, GameNotFoundError, GameStore, StoreFullError
 from casefile.case import CaseBundle
@@ -49,6 +50,7 @@ def make_client(
     token_budget: int | None = None,
     max_games: int = 10,
     saves: SaveFile | None = None,
+    portraits: Portraits | None = None,
 ) -> TestClient:
     app = create_app(
         Engine(blackwood),
@@ -58,6 +60,7 @@ def make_client(
         max_games=max_games,
         idle_ttl_s=3600,
         saves=saves,
+        portraits=portraits,
     )
     return TestClient(app)
 

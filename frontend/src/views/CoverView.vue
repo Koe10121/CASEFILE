@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 
 import { ApiError, api } from "../api/client";
 import type { CaseCover, Difficulty } from "../api/types";
+import SuspectPortrait from "../components/SuspectPortrait.vue";
 import { lastGame, rememberGame } from "../game/lastGame";
 
 const router = useRouter();
@@ -116,13 +117,27 @@ async function start(): Promise<void> {
             class="rounded-lg border border-night-700 p-4"
             :class="person.role === 'victim' ? 'border-alarm-500/40' : ''"
           >
-            <p class="font-serif text-lg">
-              {{ person.name }}<span class="text-sm text-paper-300">, {{ person.age }}</span>
-            </p>
-            <p v-if="person.role === 'victim'" class="font-mono text-xs text-alarm-400 uppercase">
-              Victim
-            </p>
-            <p class="mt-1 text-sm leading-relaxed text-paper-300">{{ person.bio }}</p>
+            <div class="flex gap-3">
+              <SuspectPortrait
+                :id="person.id"
+                :name="person.name"
+                expression="neutral"
+                :faces="cover.portraits[person.id] ?? []"
+                size="sm"
+              />
+              <div>
+                <p class="font-serif text-lg">
+                  {{ person.name }}<span class="text-sm text-paper-300">, {{ person.age }}</span>
+                </p>
+                <p
+                  v-if="person.role === 'victim'"
+                  class="font-mono text-xs text-alarm-400 uppercase"
+                >
+                  Victim
+                </p>
+                <p class="mt-1 text-sm leading-relaxed text-paper-300">{{ person.bio }}</p>
+              </div>
+            </div>
           </li>
         </ul>
       </section>

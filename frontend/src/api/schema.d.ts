@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+  "/api/portraits/{character}/{expression}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Portrait
+     * @description A portrait image (D55). Only files the startup scan found are served.
+     */
+    get: operations["portrait_api_portraits__character___expression__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/case": {
     parameters: {
       query?: never;
@@ -246,6 +266,10 @@ export interface components {
       ai: string;
       /** Max Question Chars */
       max_question_chars: number;
+      /** Portraits */
+      portraits: {
+        [key: string]: ("neutral" | "guarded" | "angry" | "afraid" | "sad" | "shaken")[];
+      };
     };
     /** DetectiveOut */
     DetectiveOut: {
@@ -321,6 +345,11 @@ export interface components {
       demeanor: string;
       /** Shown */
       shown: string | null;
+      /**
+       * Expression
+       * @enum {string}
+       */
+      expression: "neutral" | "guarded" | "angry" | "afraid" | "sad" | "shaken";
     };
     /** FactLearnedOut */
     FactLearnedOut: {
@@ -446,6 +475,11 @@ export interface components {
       dialogue: string;
       /** Demeanor */
       demeanor: string;
+      /**
+       * Expression
+       * @enum {string}
+       */
+      expression: "neutral" | "guarded" | "angry" | "afraid" | "sad" | "shaken";
     };
     /** LocationOut */
     LocationOut: {
@@ -630,6 +664,81 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  portrait_api_portraits__character___expression__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        character: string;
+        expression: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Not Found */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
+      /** @description Conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Too Many Requests */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
+      /** @description Bad Gateway */
+      502: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
+    };
+  };
   get_case_api_case_get: {
     parameters: {
       query?: never;

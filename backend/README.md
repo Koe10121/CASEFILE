@@ -49,6 +49,7 @@ Invoke-RestMethod -Method Post "http://127.0.0.1:8000/api/games/$($game.id)/talk
 | `POST /api/games/{id}/ask` | `{"text": "..."}`: ask the suspect you are talking to |
 | `POST /api/games/{id}/search` | `{"location": "LOC_STUDY"}` |
 | `POST /api/games/{id}/show` | `{"evidence": "E05"}`: show an item to the suspect you are talking to |
+| `GET /api/portraits/{character}/{expression}` | a portrait image from `cases/<case>/portraits/`, if one exists (D55) |
 | `POST /api/games/{id}/hint` | no body: the next hint, if the difficulty allows one now (D54) |
 | `POST /api/games/{id}/accuse` | `{"accusation": {"culprit", "motive", "method", "evidence": [...]}}`: final |
 

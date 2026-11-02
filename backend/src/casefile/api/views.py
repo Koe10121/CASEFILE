@@ -23,8 +23,10 @@ from casefile.engine.events import (
     LocationSearched,
 )
 from casefile.engine.state import GameState, Source
+from casefile.expressions import EXPRESSIONS, Expression, expression_for
 from casefile.session import MAX_PLAYER_CHARS, GameSession, Reply
 
+from .portraits import Portraits
 from .schemas import (
     AccusationOptionsOut,
     AccusationScoredOut,
@@ -56,7 +58,7 @@ from .schemas import (
 )
 
 
-def case_view(engine: Engine, ai: str) -> CaseOut:
+def case_view(engine: Engine, ai: str, portraits: Portraits) -> CaseOut:
     case = engine.index.bundle.case
     options = case.accusation_options
     return CaseOut(
@@ -81,6 +83,10 @@ def case_view(engine: Engine, ai: str) -> CaseOut:
         ),
         ai=ai,
         max_question_chars=MAX_PLAYER_CHARS,
+        portraits={
+            character: tuple(e for e in EXPRESSIONS if e in faces)
+            for character, faces in portraits.items()
+        },
     )
 
 
@@ -145,7 +151,11 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
         interviews={
             suspect: tuple(
                 ExchangeOut(
-                    detective=x.detective, suspect=x.suspect, demeanor=x.demeanor, shown=x.shown
+                    detective=x.detective,
+                    suspect=x.suspect,
+                    demeanor=x.demeanor,
+                    shown=x.shown,
+                    expression=_expression(x.demeanor, caught=x.shown is not None),
                 )
                 for x in exchanges
             )
@@ -161,14 +171,17 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
     )
 
 
-def line_view(session: GameSession, reply: Reply) -> LineOut | None:
+def line_view(session: GameSession, reply: Reply, *, caught: bool = False) -> LineOut | None:
     """The suspect's line, if the action produced one. Only dialogue and demeanor leave:
     the reply's leak, grounding and rejection details would tell the player who the
     culprit is (D45)."""
     if not reply.dialogue or session.current_suspect is None:
         return None
     return LineOut(
-        suspect=session.current_suspect, dialogue=reply.dialogue, demeanor=reply.demeanor
+        suspect=session.current_suspect,
+        dialogue=reply.dialogue,
+        demeanor=reply.demeanor,
+        expression=_expression(reply.demeanor, caught=caught),
     )
 
 
@@ -199,6 +212,11 @@ def events_view(engine: Engine, events: tuple[Event, ...]) -> tuple[EventOut, ..
 
 
 # ------------------------------------------------------------------ helpers
+
+
+def _expression(demeanor: str, *, caught: bool) -> Expression:
+    """A suspect who has just been caught out looks it, whatever their manner (D55)."""
+    return "shaken" if caught else expression_for(demeanor)
 
 
 def _evidence(engine: Engine, state: GameState, *, relevant_only: bool) -> tuple[EvidenceOut, ...]:

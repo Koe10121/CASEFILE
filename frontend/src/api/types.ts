@@ -8,6 +8,7 @@ type Schemas = components["schemas"];
 export type CaseCover = Schemas["CaseOut"];
 export type Game = Schemas["GameOut"];
 export type Hints = Schemas["HintsOut"];
+export type Expression = Schemas["LineOut"]["expression"];
 export type ActionResult = Schemas["ActionOut"];
 export type GameEvent = ActionResult["events"][number];
 export type Line = Schemas["LineOut"];
