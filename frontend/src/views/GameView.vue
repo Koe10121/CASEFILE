@@ -121,7 +121,7 @@ watch(
         {{ error }}
       </p>
       <PlayerKeyForm
-        v-if="needsKey && cover.player_keys && !game.scripted"
+        v-if="needsKey && cover.player_keys && game.played_by === 'server'"
         class="mt-3"
         refused
         @saved="keyChanged"

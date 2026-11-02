@@ -17,6 +17,7 @@ export type Evidence = Schemas["EvidenceOut"];
 export type Location = Schemas["LocationOut"];
 export type Suspect = Schemas["SuspectOut"];
 export type Difficulty = Game["difficulty"];
+export type PlayedBy = Game["played_by"];
 
 /** Each action endpoint and the body it takes. */
 export interface ActionBodies {

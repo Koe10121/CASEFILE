@@ -1206,6 +1206,18 @@
           },
           "game": {
             "$ref": "#/components/schemas/GameOut"
+          },
+          "relay": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relay"
           }
         },
         "type": "object",
@@ -1222,6 +1234,16 @@
             "type": "string",
             "minLength": 1,
             "title": "Text"
+          },
+          "ollama": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OllamaReply"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -1274,6 +1296,10 @@
             "type": "boolean",
             "title": "Player Keys"
           },
+          "ollama_model": {
+            "type": "string",
+            "title": "Ollama Model"
+          },
           "max_question_chars": {
             "type": "integer",
             "title": "Max Question Chars"
@@ -1311,6 +1337,7 @@
           "accusation",
           "ai",
           "player_keys",
+          "ollama_model",
           "max_question_chars",
           "portraits"
         ],
@@ -1582,9 +1609,14 @@
           "help": {
             "$ref": "#/components/schemas/DifficultyProfile"
           },
-          "scripted": {
-            "type": "boolean",
-            "title": "Scripted"
+          "played_by": {
+            "type": "string",
+            "enum": [
+              "server",
+              "scripted",
+              "your_ollama"
+            ],
+            "title": "Played By"
           },
           "over": {
             "type": "boolean",
@@ -1672,7 +1704,7 @@
           "difficulty",
           "detective",
           "help",
-          "scripted",
+          "played_by",
           "over",
           "current_suspect",
           "suspects",
@@ -1964,10 +1996,15 @@
             ],
             "title": "Detective"
           },
-          "scripted": {
-            "type": "boolean",
-            "title": "Scripted",
-            "default": false
+          "played_by": {
+            "type": "string",
+            "enum": [
+              "server",
+              "scripted",
+              "your_ollama"
+            ],
+            "title": "Played By",
+            "default": "server"
           }
         },
         "additionalProperties": false,
@@ -2022,6 +2059,56 @@
           "subjects"
         ],
         "title": "NotebookEntryOut"
+      },
+      "OllamaMessage": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 20000,
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "OllamaMessage"
+      },
+      "OllamaReply": {
+        "properties": {
+          "message": {
+            "$ref": "#/components/schemas/OllamaMessage"
+          },
+          "done_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Done Reason"
+          },
+          "prompt_eval_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Prompt Eval Count",
+            "default": 0
+          },
+          "eval_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Eval Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "OllamaReply",
+        "description": "The fields of Ollama's ``/api/chat`` reply that we use."
       },
       "OptionOut": {
         "properties": {

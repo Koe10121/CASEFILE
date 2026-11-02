@@ -1,5 +1,13 @@
 import { playerKey } from "../game/playerKey";
-import type { ActionBodies, ActionResult, CaseCover, Difficulty, Game, Verb } from "./types";
+import type {
+  ActionBodies,
+  ActionResult,
+  CaseCover,
+  Difficulty,
+  Game,
+  PlayedBy,
+  Verb,
+} from "./types";
 
 /** A refused request, with the backend's one-line reason. Nothing changed in the game. */
 export class ApiError extends Error {
@@ -52,10 +60,10 @@ async function reason(response: Response): Promise<string> {
 export const api = {
   getCase: () => request<CaseCover>("/case"),
 
-  newGame: (difficulty: Difficulty, detective: string, scripted = false) =>
+  newGame: (difficulty: Difficulty, detective: string, playedBy: PlayedBy = "server") =>
     request<Game>("/games", {
       method: "POST",
-      body: JSON.stringify({ difficulty, detective, scripted }),
+      body: JSON.stringify({ difficulty, detective, played_by: playedBy }),
     }),
 
   getGame: (id: string) => request<Game>(`/games/${encodeURIComponent(id)}`),

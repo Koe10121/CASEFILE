@@ -15,31 +15,10 @@ from collections.abc import Sequence
 import httpx2
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from casefile.ai.contract import Exchange, NpcTurn, ProviderError, Usage
-from casefile.ai.prompt import (
-    REPLY_SCHEMA,
-    conversation,
-    parse_reply,
-    stable_instructions,
-    turn_state,
-)
+from casefile.ai.contract import Exchange, NpcTurn, ProviderError
+from casefile.ai.relay import OllamaReply, chat_request, turn_from
 from casefile.engine.briefing import SuspectBriefing
 from casefile.settings import Settings
-
-
-class _Message(BaseModel):
-    content: str
-
-
-class _ChatResponse(BaseModel):
-    """The fields of Ollama's ``/api/chat`` reply that we use."""
-
-    model_config = ConfigDict(extra="ignore")
-
-    message: _Message
-    done_reason: str | None = None
-    prompt_eval_count: int = 0
-    eval_count: int = 0
 
 
 class _Model(BaseModel):
@@ -81,22 +60,16 @@ class OllamaNpc:
     def respond(
         self, briefing: SuspectBriefing, history: Sequence[Exchange], player_text: str
     ) -> NpcTurn:
-        system = f"{stable_instructions(briefing)}\n\n{turn_state(briefing)}"
-        messages = [{"role": "system", "content": system}] + [
-            {"role": role, "content": text} for role, text in conversation(history, player_text)
-        ]
+        body = chat_request(
+            briefing,
+            history,
+            player_text,
+            model=self._settings.ollama_model,
+            max_output_tokens=self._settings.max_output_tokens,
+        )
         started = time.monotonic()
         try:
-            response = self._client.post(
-                "/api/chat",
-                json={
-                    "model": self._settings.ollama_model,
-                    "messages": messages,
-                    "format": REPLY_SCHEMA,
-                    "stream": False,
-                    "options": {"num_predict": self._settings.max_output_tokens},
-                },
-            )
+            response = self._client.post("/api/chat", json=body)
             response.raise_for_status()
         except httpx2.HTTPStatusError as exc:
             detail = exc.response.text[:200]
@@ -106,14 +79,7 @@ class OllamaNpc:
         latency_ms = int((time.monotonic() - started) * 1000)
 
         try:
-            chat = _ChatResponse.model_validate_json(response.content)
+            chat = OllamaReply.model_validate_json(response.content)
         except ValidationError as exc:
             raise ProviderError("malformed", "unexpected response from Ollama") from exc
-        if chat.done_reason == "length":
-            raise ProviderError("truncated", "the reply hit the output token limit")
-        usage = Usage(
-            input_tokens=chat.prompt_eval_count,
-            output_tokens=chat.eval_count,
-            latency_ms=latency_ms,
-        )
-        return NpcTurn(reply=parse_reply(chat.message.content), usage=usage)
+        return turn_from(chat, latency_ms)

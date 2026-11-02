@@ -142,17 +142,17 @@ def test_a_player_without_a_key_can_play_the_scripted_suspects(
     saves = SaveFile(tmp_path / "games.sqlite3", "blackwood-001", keep_days=30)
     provider = PlayerKeyClaude(Settings(), keys)
     with make_client(blackwood, provider, player_keys=True, saves=saves) as client:
-        made = client.post("/api/games", json={"difficulty": "normal", "scripted": True})
+        made = client.post("/api/games", json={"difficulty": "normal", "played_by": "scripted"})
         assert made.status_code == 201
         game = made.json()
-        assert game["scripted"] is True
+        assert game["played_by"] == "scripted"
         assert game["tokens"]["budget"] is None  # free: no cap
         game_id = game["id"]
         ok(act(client, game_id, "talk", {"suspect": "S_RICHARD"}))
         assert ok(ask(client, game_id, None))["line"]["dialogue"]
 
         claude_game = interview(client)
-        assert ok(client.get(f"/api/games/{claude_game}"))["scripted"] is False
+        assert ok(client.get(f"/api/games/{claude_game}"))["played_by"] == "server"
         assert ask(client, claude_game, None).status_code == 401
 
     # After a restart the scripted game is still scripted.
