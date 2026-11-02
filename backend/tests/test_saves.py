@@ -153,7 +153,7 @@ def test_a_save_that_no_longer_replays_is_dropped(
 def test_a_game_dropped_as_idle_is_loaded_again(engine: Engine, tmp_path: Path) -> None:
     clock = Clock()
     store = GameStore(
-        lambda d: GameSession(engine, MockNpc(), detective=d),
+        lambda d, _: GameSession(engine, MockNpc(), detective=d),
         lambda saved: GameSession.resume(engine, MockNpc(), None, saved),
         saves=SaveFile(tmp_path / "games.sqlite3", "blackwood-001", keep_days=30),
         max_games=1,

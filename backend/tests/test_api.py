@@ -294,7 +294,7 @@ class Clock:
 def make_store(blackwood: CaseBundle, clock: Clock, max_games: int = 2) -> GameStore:
     engine = Engine(blackwood)
     return GameStore(
-        lambda d: GameSession(engine, MockNpc(), detective=d),
+        lambda d, _: GameSession(engine, MockNpc(), detective=d),
         lambda saved: GameSession.resume(engine, MockNpc(), None, saved),
         max_games=max_games,
         idle_ttl_s=60,

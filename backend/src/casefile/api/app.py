@@ -22,14 +22,16 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from casefile.ai.contract import ProviderError
 from casefile.ai.factory import make_provider, setup_problem
+from casefile.ai.mock import MockNpc
 from casefile.ai.player_key import MAX_KEY_CHARS, MissingKeyError, PlayerKeyClaude, player_key
 from casefile.ai.provider import NpcProvider
+from casefile.ai.relay import RelayedOllama, RelayNeededError, relayed
 from casefile.case.ids import CharacterId
 from casefile.case.validation import load_valid_case
 from casefile.cli import DEFAULT_CASE
 from casefile.engine.engine import Engine, IllegalActionError, Outcome
 from casefile.expressions import Expression
-from casefile.session import BudgetExhaustedError, GameSession, Reply
+from casefile.session import BudgetExhaustedError, GameSession, PlayedBy, Reply, SavedGame
 from casefile.settings import Ai, Settings
 
 from .limits import RateLimitedError, RateLimiter
@@ -77,17 +79,35 @@ def create_app(
     limits: Limits | None = None,
     web: Path | None = None,
     player_keys: bool = False,
+    ollama_model: str = "llama3.1:8b",
+    max_output_tokens: int = 2048,
 ) -> FastAPI:
     app = FastAPI(title="CASEFILE", version="0.1.0", responses=_ERRORS)
+    # Who plays the suspects, per game (D59, D60). Scripted suspects and the player's
+    # own Ollama cost the server nothing, so they have no token cap.
+    players: dict[PlayedBy, tuple[NpcProvider, int | None]] = {
+        "server": (provider, token_budget),
+        "scripted": (MockNpc(), None),
+        "your_ollama": (RelayedOllama(ollama_model, max_output_tokens), None),
+    }
+
+    def new_session(detective: str | None, played_by: PlayedBy) -> GameSession:
+        npc, budget = players[played_by]
+        return GameSession(engine, npc, budget, detective, played_by=played_by)
+
+    def resume_session(saved: SavedGame) -> GameSession:
+        npc, budget = players[saved.played_by]
+        return GameSession.resume(engine, npc, budget, saved)
+
     store = GameStore(
-        lambda detective: GameSession(engine, provider, token_budget, detective),
-        lambda saved: GameSession.resume(engine, provider, token_budget, saved),
+        new_session,
+        resume_session,
         saves=saves,
         max_games=max_games,
         idle_ttl_s=idle_ttl_s,
     )
     faces = portraits or {}
-    case = case_view(engine, ai, faces, player_keys=player_keys)
+    case = case_view(engine, ai, faces, player_keys=player_keys, ollama_model=ollama_model)
 
     def action(
         game_id: str, game: StoredGame, outcome: Reply | Outcome, *, caught: bool = False
@@ -137,7 +157,7 @@ def create_app(
 
     @app.post("/api/games", status_code=201, dependencies=limit_new_games)
     def new_game(body: NewGame) -> GameOut:
-        game_id = store.create(body.difficulty, body.detective)
+        game_id = store.create(body.difficulty, body.detective, played_by=body.played_by)
         with store.use(game_id) as game:
             return game_view(game_id, game.difficulty, game.session)
 
@@ -159,8 +179,15 @@ def create_app(
     ) -> ActionOut:
         """``X-Claude-Key`` is the player's Anthropic API key, needed only when the cover
         says ``player_keys`` (D58). It is used for this one call and never stored."""
-        with store.use(game_id) as game, player_key(x_claude_key if player_keys else None):
-            return action(game_id, game, game.session.ask(body.text))
+        with store.use(game_id) as game:
+            own_ollama = body.ollama if game.session.played_by == "your_ollama" else None
+            with player_key(x_claude_key if player_keys else None), relayed(own_ollama):
+                try:
+                    reply = game.session.ask(body.text)
+                except RelayNeededError as relay:
+                    view = game_view(game_id, game.difficulty, game.session)
+                    return ActionOut(line=None, events=(), game=view, relay=relay.request)
+            return action(game_id, game, reply)
 
     @app.post("/api/games/{game_id}/search", dependencies=limit_actions)
     def search(game_id: str, body: SearchRequest) -> ActionOut:
@@ -290,6 +317,8 @@ def main(argv: list[str] | None = None) -> None:
         ),
         web=args.web,
         player_keys=settings.player_keys and args.openapi is None,
+        ollama_model=settings.ollama_model,
+        max_output_tokens=settings.max_output_tokens,
     )
     if args.openapi is not None:
         # Written as UTF-8 by Python, not piped: PowerShell 5 redirects as UTF-16.

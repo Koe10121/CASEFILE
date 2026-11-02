@@ -59,7 +59,12 @@ from .schemas import (
 
 
 def case_view(
-    engine: Engine, ai: str, portraits: Portraits, *, player_keys: bool = False
+    engine: Engine,
+    ai: str,
+    portraits: Portraits,
+    *,
+    player_keys: bool = False,
+    ollama_model: str = "llama3.1:8b",
 ) -> CaseOut:
     case = engine.index.bundle.case
     options = case.accusation_options
@@ -85,6 +90,7 @@ def case_view(
         ),
         ai=ai,
         player_keys=player_keys,
+        ollama_model=ollama_model,
         max_question_chars=MAX_PLAYER_CHARS,
         portraits={
             character: tuple(e for e in EXPRESSIONS if e in faces)
@@ -110,6 +116,7 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
             ix.bundle.case.detective, ix.bundle.case.detective.identity(session.detective)
         ),
         help=help_,
+        played_by=session.played_by,
         over=state.is_over,
         current_suspect=session.current_suspect,
         suspects=tuple(

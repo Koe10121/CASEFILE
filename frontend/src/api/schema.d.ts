@@ -241,11 +241,16 @@ export interface components {
         | components["schemas"]["AccusationScoredOut"]
       )[];
       game: components["schemas"]["GameOut"];
+      /** Relay */
+      relay?: {
+        [key: string]: unknown;
+      } | null;
     };
     /** AskRequest */
     AskRequest: {
       /** Text */
       text: string;
+      ollama?: components["schemas"]["OllamaReply"] | null;
     };
     /**
      * CaseOut
@@ -270,6 +275,8 @@ export interface components {
       ai: string;
       /** Player Keys */
       player_keys: boolean;
+      /** Ollama Model */
+      ollama_model: string;
       /** Max Question Chars */
       max_question_chars: number;
       /** Portraits */
@@ -385,6 +392,11 @@ export interface components {
       difficulty: "easy" | "normal" | "hard";
       detective: components["schemas"]["IdentityOut"];
       help: components["schemas"]["DifficultyProfile"];
+      /**
+       * Played By
+       * @enum {string}
+       */
+      played_by: "server" | "scripted" | "your_ollama";
       /** Over */
       over: boolean;
       /** Current Suspect */
@@ -522,6 +534,12 @@ export interface components {
       difficulty: "easy" | "normal" | "hard";
       /** Detective */
       detective?: string | null;
+      /**
+       * Played By
+       * @default server
+       * @enum {string}
+       */
+      played_by: "server" | "scripted" | "your_ollama";
     };
     /** NotebookEntryOut */
     NotebookEntryOut: {
@@ -536,6 +554,30 @@ export interface components {
       time: components["schemas"]["TimeOut"] | null;
       /** Subjects */
       subjects: string[];
+    };
+    /** OllamaMessage */
+    OllamaMessage: {
+      /** Content */
+      content: string;
+    };
+    /**
+     * OllamaReply
+     * @description The fields of Ollama's ``/api/chat`` reply that we use.
+     */
+    OllamaReply: {
+      message: components["schemas"]["OllamaMessage"];
+      /** Done Reason */
+      done_reason?: string | null;
+      /**
+       * Prompt Eval Count
+       * @default 0
+       */
+      prompt_eval_count: number;
+      /**
+       * Eval Count
+       * @default 0
+       */
+      eval_count: number;
     };
     /** OptionOut */
     OptionOut: {

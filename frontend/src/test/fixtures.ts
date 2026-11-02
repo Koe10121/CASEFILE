@@ -19,6 +19,7 @@ export function makeGame(overrides: Partial<Game> = {}): Game {
       notebook: "by_suspect",
       evidence_picker: "all_found",
     },
+    played_by: "server",
     over: false,
     current_suspect: null,
     suspects: [{ id: "S_RICHARD", name: "Richard Okafor", interviewed: false }],
@@ -45,6 +46,7 @@ export const cover: CaseCover = {
   accusation: { culprits: ["S_RICHARD"], motives: [], methods: [], max_evidence: 4 },
   ai: "mock",
   player_keys: false,
+  ollama_model: "llama3.1:8b",
   max_question_chars: 500,
   portraits: {},
 };

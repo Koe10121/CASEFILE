@@ -15,7 +15,7 @@ import math
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -42,6 +42,8 @@ from casefile.engine.scoring import Accusation
 from casefile.engine.state import GameState
 
 MAX_PLAYER_CHARS = 500
+
+PlayedBy = Literal["server", "scripted", "your_ollama"]
 """Injection defence layer 6: long inputs are where elaborate jailbreaks live."""
 
 LEAK_FALLBACK = "I've told you what I know, Inspector."
@@ -82,6 +84,8 @@ class SavedGame(BaseModel):
     hints: tuple[str, ...] = ()
     last_progress_at: float | None = None
     """Wall-clock time of the last new fact, catch or hint, for timed hints (D54)."""
+    played_by: PlayedBy = "server"
+    """Who plays this game's suspects (D59, D60)."""
 
 
 class BudgetExhaustedError(IllegalActionError):
@@ -98,6 +102,10 @@ class GameSession:
     """The detective identity the player chose (D51). ``None``: the case default."""
     clock: Callable[[], float] = time.time
     """Wall clock, for timed hints. Replaced in tests."""
+    played_by: PlayedBy = "server"
+    """Who plays the suspects: the server's own AI, the free scripted suspects (D59), or
+    the Ollama on the player's computer, reached through their browser (D60). Saved, so
+    a resumed game keeps its suspects."""
     tokens_used: int = field(default=0, init=False)
     state: GameState = field(init=False)
     log: list[LogEntry] = field(default_factory=list, init=False)
@@ -126,6 +134,7 @@ class GameSession:
             tokens_used=self.tokens_used,
             hints=tuple(self.hints),
             last_progress_at=self.last_progress_at,
+            played_by=self.played_by,
         )
 
     @classmethod
@@ -134,7 +143,7 @@ class GameSession:
     ) -> Self:
         """Rebuild a saved game by replaying its log. Raises ``IllegalActionError`` if the
         log no longer replays, e.g. because the case file changed since it was saved."""
-        session = cls(engine, provider, token_budget, saved.detective)
+        session = cls(engine, provider, token_budget, saved.detective, played_by=saved.played_by)
         session.state = engine.replay(saved.log)
         session.log = list(saved.log)
         session.transcripts = {s: list(t) for s, t in saved.transcripts.items()}

@@ -19,7 +19,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 
 from casefile.engine.engine import IllegalActionError
-from casefile.session import GameSession, SavedGame
+from casefile.session import GameSession, PlayedBy, SavedGame
 
 from .saves import SaveFile
 from .schemas import Difficulty
@@ -48,7 +48,7 @@ class StoredGame:
 class GameStore:
     def __init__(
         self,
-        new_session: Callable[[str | None], GameSession],
+        new_session: Callable[[str | None, PlayedBy], GameSession],
         resume_session: Callable[[SavedGame], GameSession],
         *,
         saves: SaveFile | None = None,
@@ -65,10 +65,16 @@ class GameStore:
         self._games: dict[str, StoredGame] = {}
         self._lock = threading.Lock()
 
-    def create(self, difficulty: Difficulty, detective: str | None = None) -> str:
+    def create(
+        self,
+        difficulty: Difficulty,
+        detective: str | None = None,
+        *,
+        played_by: PlayedBy = "server",
+    ) -> str:
         with self._lock:
             self._make_room()
-            session = self._new_session(detective)  # raises on an unknown identity
+            session = self._new_session(detective, played_by)  # raises on an unknown identity
             game_id = secrets.token_urlsafe(16)
             game = StoredGame(session, difficulty, self._clock())
             self._games[game_id] = game

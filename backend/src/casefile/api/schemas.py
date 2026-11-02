@@ -5,14 +5,16 @@ built from the game state by ``views.py`` (D44); nothing in this file is a case 
 so a case model can't reach the browser whole by accident.
 """
 
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from casefile.ai.relay import OllamaReply
 from casefile.case.ids import CharacterId, EvidenceId, FactId, LieId, LocationId
 from casefile.case.world import DifficultyProfile
 from casefile.engine.scoring import Accusation
 from casefile.expressions import Expression
+from casefile.session import PlayedBy
 
 Difficulty = Literal["easy", "normal", "hard"]
 
@@ -32,6 +34,10 @@ class NewGame(_In):
     difficulty: Difficulty = "normal"
     detective: str | None = None
     """A detective identity ID from the case cover (D51). ``None``: the case default."""
+    played_by: PlayedBy = "server"
+    """``server``: the server's own AI (on the player's key where the cover says
+    ``player_keys``). ``scripted``: free, no AI and no key (D59). ``your_ollama``: the
+    Ollama on the player's computer, through their browser (D60)."""
 
 
 class TalkRequest(_In):
@@ -41,6 +47,9 @@ class TalkRequest(_In):
 class AskRequest(_In):
     text: str = Field(min_length=1)
     """The 500-character cap is the session's rule, so its message is the session's too."""
+    ollama: OllamaReply | None = None
+    """In a ``your_ollama`` game: what the player's Ollama answered to the ``relay``
+    request the first try returned (D60). Ignored in other games."""
 
 
 class SearchRequest(_In):
@@ -110,6 +119,8 @@ class CaseOut(_Out):
     ai: str
     """Who plays the suspects on this server: ``mock``, ``ollama`` or ``claude``."""
     player_keys: bool
+    ollama_model: str
+    """The model a ``your_ollama`` game asks the player's Ollama for (D60)."""
     """Claude plays on each player's own API key, sent as ``X-Claude-Key`` with every
     question (D58). The browser should ask for one before the game."""
     max_question_chars: int
@@ -233,6 +244,8 @@ class GameOut(_Out):
     """Who the player is in this game."""
     help: DifficultyProfile
     """What the chosen difficulty turns on in the UI (D11). The truth never changes."""
+    played_by: PlayedBy
+    """Who plays this game's suspects (D59, D60)."""
     over: bool
     current_suspect: CharacterId | None
     suspects: tuple[SuspectOut, ...]
@@ -315,6 +328,10 @@ class ActionOut(_Out):
     """Set for ``talk`` (first meeting) and ``ask``."""
     events: tuple[EventOut, ...]
     game: GameOut
+    relay: dict[str, Any] | None = None
+    """In a ``your_ollama`` game, an ``ask`` first returns this instead of a line: the
+    body to POST to the player's Ollama at ``/api/chat``. Ask again with its reply as
+    ``ollama``. Nothing in the game changed (D60)."""
 
 
 class ErrorOut(_Out):

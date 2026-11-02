@@ -1,6 +1,7 @@
 import { computed, ref, shallowRef } from "vue";
 
 import { ApiError, api } from "../api/client";
+import { OllamaError, askOllama } from "./ownOllama";
 import type { ActionBodies, CaseCover, Game, GameEvent, Verb } from "../api/types";
 
 /**
@@ -35,6 +36,10 @@ export function useGame(id: string) {
     try {
       await work();
     } catch (e) {
+      if (e instanceof OllamaError) {
+        error.value = e.message;
+        return;
+      }
       if (!(e instanceof ApiError)) throw e;
       error.value = e.message;
       lost.value = e.gameLost;
@@ -53,7 +58,12 @@ export function useGame(id: string) {
   function act<V extends Verb>(verb: V, body: ActionBodies[V]): Promise<void> {
     return guarded(async () => {
       shrugged.value = false;
-      const result = await api.act(id, verb, body);
+      let result = await api.act(id, verb, body);
+      if (result.relay && verb === "ask") {
+        // Played by the player's own Ollama (D60): ask it, then hand its reply back.
+        const ollama = await askOllama(result.relay);
+        result = await api.act(id, "ask", { ...(body as ActionBodies["ask"]), ollama });
+      }
       game.value = result.game;
       shrugged.value = verb === "show" && !result.line;
       if (result.events.length) feed.value = [...result.events].reverse().concat(feed.value);

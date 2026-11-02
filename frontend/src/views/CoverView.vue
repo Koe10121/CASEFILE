@@ -3,7 +3,8 @@ import { computed, onMounted, ref, shallowRef } from "vue";
 import { useRouter } from "vue-router";
 
 import { ApiError, api } from "../api/client";
-import type { CaseCover, Difficulty } from "../api/types";
+import type { CaseCover, Difficulty, PlayedBy } from "../api/types";
+import OllamaSetup from "../components/OllamaSetup.vue";
 import PlayerKeyForm from "../components/PlayerKeyForm.vue";
 import SuspectPortrait from "../components/SuspectPortrait.vue";
 import { lastGame, rememberGame } from "../game/lastGame";
@@ -21,7 +22,35 @@ const identity = computed(() => {
 });
 const previous = lastGame();
 const hasKey = ref(playerKey() !== null);
-const needsKey = computed(() => cover.value?.player_keys === true && !hasKey.value);
+// On the public server the player picks who plays the suspects (D58-D60): free scripted
+// suspects (the default until a key is saved), the Ollama on their own computer, or
+// Claude on their own key.
+const playedBy = ref<PlayedBy>(hasKey.value ? "server" : "scripted");
+const choosing = computed(() => cover.value?.player_keys === true);
+const needsKey = computed(() => choosing.value && playedBy.value === "server" && !hasKey.value);
+const suspectChoices: { id: PlayedBy; label: string; note: string }[] = [
+  {
+    id: "scripted",
+    label: "Scripted suspects, free",
+    note: "No setup, no cost. The suspects answer from a fixed script.",
+  },
+  {
+    id: "your_ollama",
+    label: "Your Ollama, free",
+    note: "AI suspects on your own graphics card. Needs Ollama on this computer.",
+  },
+  {
+    id: "server",
+    label: "Claude, on your own key",
+    note: "The best AI suspects. You pay Anthropic for your questions.",
+  },
+];
+
+const choiceNames: Record<PlayedBy, string> = {
+  scripted: "scripted suspects (no AI)",
+  your_ollama: "the Ollama on your computer",
+  server: "Claude, on your key",
+};
 
 const difficulties: { id: Difficulty; label: string }[] = [
   { id: "easy", label: "Easy" },
@@ -49,7 +78,11 @@ async function start(): Promise<void> {
   starting.value = true;
   error.value = null;
   try {
-    const game = await api.newGame(difficulty.value, identityId.value);
+    const game = await api.newGame(
+      difficulty.value,
+      identityId.value,
+      choosing.value ? playedBy.value : "server",
+    );
     rememberGame(game.id);
     await router.push({ name: "game", params: { id: game.id } });
   } catch (e) {
@@ -176,7 +209,32 @@ async function start(): Promise<void> {
         </div>
       </fieldset>
 
-      <PlayerKeyForm v-if="cover.player_keys" class="mt-10" @saved="hasKey = true" />
+      <fieldset v-if="cover.player_keys" class="mt-10">
+        <legend class="font-mono text-xs tracking-widest text-paper-300 uppercase">Suspects</legend>
+        <div class="mt-3 grid gap-2 sm:grid-cols-3">
+          <label
+            v-for="c in suspectChoices"
+            :key="c.id"
+            class="cursor-pointer rounded border px-4 py-3 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brass-400"
+            :class="
+              playedBy === c.id
+                ? 'border-brass-400 bg-brass-400/10 text-paper-100'
+                : 'border-night-700 text-paper-300 hover:border-night-500'
+            "
+          >
+            <input v-model="playedBy" type="radio" name="suspects" :value="c.id" class="sr-only" />
+            <span class="block font-medium">{{ c.label }}</span>
+            <span class="mt-1 block text-xs text-paper-300">{{ c.note }}</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <PlayerKeyForm v-if="choosing && playedBy === 'server'" class="mt-6" @saved="hasKey = true" />
+      <OllamaSetup
+        v-if="choosing && playedBy === 'your_ollama'"
+        class="mt-6"
+        :model="cover.ollama_model"
+      />
 
       <div class="mt-10 flex flex-wrap items-center gap-3">
         <button
@@ -196,7 +254,8 @@ async function start(): Promise<void> {
         </RouterLink>
       </div>
       <p class="mt-4 text-xs text-night-500">
-        Suspects played by {{ players[cover.ai] ?? cover.ai }}.
+        Suspects played by
+        {{ choosing ? choiceNames[playedBy] : (players[cover.ai] ?? cover.ai) }}.
       </p>
     </template>
   </main>
