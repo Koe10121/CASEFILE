@@ -32,6 +32,8 @@ class NewGame(_In):
     difficulty: Difficulty = "normal"
     detective: str | None = None
     """A detective identity ID from the case cover (D51). ``None``: the case default."""
+    scripted: bool = False
+    """Play against the scripted suspects: free, no AI and no key (D59)."""
 
 
 class TalkRequest(_In):
@@ -233,6 +235,8 @@ class GameOut(_Out):
     """Who the player is in this game."""
     help: DifficultyProfile
     """What the chosen difficulty turns on in the UI (D11). The truth never changes."""
+    scripted: bool
+    """Scripted suspects play this game, so it needs no key (D59)."""
     over: bool
     current_suspect: CharacterId | None
     suspects: tuple[SuspectOut, ...]

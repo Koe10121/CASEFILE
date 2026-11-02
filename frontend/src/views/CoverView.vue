@@ -21,7 +21,23 @@ const identity = computed(() => {
 });
 const previous = lastGame();
 const hasKey = ref(playerKey() !== null);
-const needsKey = computed(() => cover.value?.player_keys === true && !hasKey.value);
+// On a server that plays Claude on the player's own key, the player can also choose the
+// free scripted suspects (D59). With a key already saved, Claude is the default.
+const scripted = ref(!hasKey.value);
+const useClaude = computed(() => cover.value?.player_keys === true && !scripted.value);
+const needsKey = computed(() => useClaude.value && !hasKey.value);
+const suspectChoices = [
+  {
+    scripted: false,
+    label: "Claude, on your own key",
+    note: "AI suspects you can question freely. You pay Anthropic for your questions.",
+  },
+  {
+    scripted: true,
+    label: "Scripted suspects, free",
+    note: "No key, no cost. The suspects answer from a fixed script.",
+  },
+];
 
 const difficulties: { id: Difficulty; label: string }[] = [
   { id: "easy", label: "Easy" },
@@ -49,7 +65,11 @@ async function start(): Promise<void> {
   starting.value = true;
   error.value = null;
   try {
-    const game = await api.newGame(difficulty.value, identityId.value);
+    const game = await api.newGame(
+      difficulty.value,
+      identityId.value,
+      cover.value?.player_keys === true && scripted.value,
+    );
     rememberGame(game.id);
     await router.push({ name: "game", params: { id: game.id } });
   } catch (e) {
@@ -176,7 +196,33 @@ async function start(): Promise<void> {
         </div>
       </fieldset>
 
-      <PlayerKeyForm v-if="cover.player_keys" class="mt-10" @saved="hasKey = true" />
+      <fieldset v-if="cover.player_keys" class="mt-10">
+        <legend class="font-mono text-xs tracking-widest text-paper-300 uppercase">Suspects</legend>
+        <div class="mt-3 grid gap-2 sm:grid-cols-2">
+          <label
+            v-for="c in suspectChoices"
+            :key="c.label"
+            class="cursor-pointer rounded border px-4 py-3 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brass-400"
+            :class="
+              scripted === c.scripted
+                ? 'border-brass-400 bg-brass-400/10 text-paper-100'
+                : 'border-night-700 text-paper-300 hover:border-night-500'
+            "
+          >
+            <input
+              v-model="scripted"
+              type="radio"
+              name="suspects"
+              :value="c.scripted"
+              class="sr-only"
+            />
+            <span class="block font-medium">{{ c.label }}</span>
+            <span class="mt-1 block text-xs text-paper-300">{{ c.note }}</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <PlayerKeyForm v-if="useClaude" class="mt-6" @saved="hasKey = true" />
 
       <div class="mt-10 flex flex-wrap items-center gap-3">
         <button
@@ -196,7 +242,8 @@ async function start(): Promise<void> {
         </RouterLink>
       </div>
       <p class="mt-4 text-xs text-night-500">
-        Suspects played by {{ players[cover.ai] ?? cover.ai }}.
+        Suspects played by
+        {{ cover.player_keys && scripted ? players.mock : (players[cover.ai] ?? cover.ai) }}.
       </p>
     </template>
   </main>

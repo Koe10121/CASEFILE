@@ -82,6 +82,8 @@ class SavedGame(BaseModel):
     hints: tuple[str, ...] = ()
     last_progress_at: float | None = None
     """Wall-clock time of the last new fact, catch or hint, for timed hints (D54)."""
+    scripted: bool = False
+    """Played by the scripted suspects (D59)."""
 
 
 class BudgetExhaustedError(IllegalActionError):
@@ -98,6 +100,9 @@ class GameSession:
     """The detective identity the player chose (D51). ``None``: the case default."""
     clock: Callable[[], float] = time.time
     """Wall clock, for timed hints. Replaced in tests."""
+    scripted: bool = False
+    """The player chose the free scripted suspects on a server that otherwise plays
+    Claude on their own key (D59). Saved, so a resumed game keeps its suspects."""
     tokens_used: int = field(default=0, init=False)
     state: GameState = field(init=False)
     log: list[LogEntry] = field(default_factory=list, init=False)
@@ -126,6 +131,7 @@ class GameSession:
             tokens_used=self.tokens_used,
             hints=tuple(self.hints),
             last_progress_at=self.last_progress_at,
+            scripted=self.scripted,
         )
 
     @classmethod
@@ -134,7 +140,7 @@ class GameSession:
     ) -> Self:
         """Rebuild a saved game by replaying its log. Raises ``IllegalActionError`` if the
         log no longer replays, e.g. because the case file changed since it was saved."""
-        session = cls(engine, provider, token_budget, saved.detective)
+        session = cls(engine, provider, token_budget, saved.detective, scripted=saved.scripted)
         session.state = engine.replay(saved.log)
         session.log = list(saved.log)
         session.transcripts = {s: list(t) for s, t in saved.transcripts.items()}

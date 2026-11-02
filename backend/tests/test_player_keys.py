@@ -133,3 +133,29 @@ def test_keys_do_not_cross_between_threads(blackwood: CaseBundle) -> None:
             t.join()
     assert set(results.values()) == {200}
     assert sorted(keys.seen) == sorted(results)
+
+
+def test_a_player_without_a_key_can_play_the_scripted_suspects(
+    blackwood: CaseBundle, tmp_path: Path
+) -> None:
+    keys = Keys()
+    saves = SaveFile(tmp_path / "games.sqlite3", "blackwood-001", keep_days=30)
+    provider = PlayerKeyClaude(Settings(), keys)
+    with make_client(blackwood, provider, player_keys=True, saves=saves) as client:
+        made = client.post("/api/games", json={"difficulty": "normal", "scripted": True})
+        assert made.status_code == 201
+        game = made.json()
+        assert game["scripted"] is True
+        assert game["tokens"]["budget"] is None  # free: no cap
+        game_id = game["id"]
+        ok(act(client, game_id, "talk", {"suspect": "S_RICHARD"}))
+        assert ok(ask(client, game_id, None))["line"]["dialogue"]
+
+        claude_game = interview(client)
+        assert ok(client.get(f"/api/games/{claude_game}"))["scripted"] is False
+        assert ask(client, claude_game, None).status_code == 401
+
+    # After a restart the scripted game is still scripted.
+    with make_client(blackwood, provider, player_keys=True, saves=saves) as client:
+        assert ok(ask(client, game_id, None))["line"]["dialogue"]
+    assert keys.seen == []

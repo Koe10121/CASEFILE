@@ -19,6 +19,7 @@ export function makeGame(overrides: Partial<Game> = {}): Game {
       notebook: "by_suspect",
       evidence_picker: "all_found",
     },
+    scripted: false,
     over: false,
     current_suspect: null,
     suspects: [{ id: "S_RICHARD", name: "Richard Okafor", interviewed: false }],

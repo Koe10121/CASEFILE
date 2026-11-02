@@ -1582,6 +1582,10 @@
           "help": {
             "$ref": "#/components/schemas/DifficultyProfile"
           },
+          "scripted": {
+            "type": "boolean",
+            "title": "Scripted"
+          },
           "over": {
             "type": "boolean",
             "title": "Over"
@@ -1668,6 +1672,7 @@
           "difficulty",
           "detective",
           "help",
+          "scripted",
           "over",
           "current_suspect",
           "suspects",
@@ -1958,6 +1963,11 @@
               }
             ],
             "title": "Detective"
+          },
+          "scripted": {
+            "type": "boolean",
+            "title": "Scripted",
+            "default": false
           }
         },
         "additionalProperties": false,

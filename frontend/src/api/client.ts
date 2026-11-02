@@ -52,8 +52,11 @@ async function reason(response: Response): Promise<string> {
 export const api = {
   getCase: () => request<CaseCover>("/case"),
 
-  newGame: (difficulty: Difficulty, detective: string) =>
-    request<Game>("/games", { method: "POST", body: JSON.stringify({ difficulty, detective }) }),
+  newGame: (difficulty: Difficulty, detective: string, scripted = false) =>
+    request<Game>("/games", {
+      method: "POST",
+      body: JSON.stringify({ difficulty, detective, scripted }),
+    }),
 
   getGame: (id: string) => request<Game>(`/games/${encodeURIComponent(id)}`),
 

@@ -110,6 +110,7 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
             ix.bundle.case.detective, ix.bundle.case.detective.identity(session.detective)
         ),
         help=help_,
+        scripted=session.scripted,
         over=state.is_over,
         current_suspect=session.current_suspect,
         suspects=tuple(

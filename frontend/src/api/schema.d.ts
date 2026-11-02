@@ -385,6 +385,8 @@ export interface components {
       difficulty: "easy" | "normal" | "hard";
       detective: components["schemas"]["IdentityOut"];
       help: components["schemas"]["DifficultyProfile"];
+      /** Scripted */
+      scripted: boolean;
       /** Over */
       over: boolean;
       /** Current Suspect */
@@ -522,6 +524,11 @@ export interface components {
       difficulty: "easy" | "normal" | "hard";
       /** Detective */
       detective?: string | null;
+      /**
+       * Scripted
+       * @default false
+       */
+      scripted: boolean;
     };
     /** NotebookEntryOut */
     NotebookEntryOut: {

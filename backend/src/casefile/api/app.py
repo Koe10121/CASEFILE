@@ -22,6 +22,7 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from casefile.ai.contract import ProviderError
 from casefile.ai.factory import make_provider, setup_problem
+from casefile.ai.mock import MockNpc
 from casefile.ai.player_key import MAX_KEY_CHARS, MissingKeyError, PlayerKeyClaude, player_key
 from casefile.ai.provider import NpcProvider
 from casefile.case.ids import CharacterId
@@ -29,7 +30,7 @@ from casefile.case.validation import load_valid_case
 from casefile.cli import DEFAULT_CASE
 from casefile.engine.engine import Engine, IllegalActionError, Outcome
 from casefile.expressions import Expression
-from casefile.session import BudgetExhaustedError, GameSession, Reply
+from casefile.session import BudgetExhaustedError, GameSession, Reply, SavedGame
 from casefile.settings import Ai, Settings
 
 from .limits import RateLimitedError, RateLimiter
@@ -79,9 +80,21 @@ def create_app(
     player_keys: bool = False,
 ) -> FastAPI:
     app = FastAPI(title="CASEFILE", version="0.1.0", responses=_ERRORS)
+    scripted_npc = MockNpc()
+
+    def new_session(detective: str | None, scripted: bool) -> GameSession:
+        if scripted:  # free, so no token cap (D59)
+            return GameSession(engine, scripted_npc, None, detective, scripted=True)
+        return GameSession(engine, provider, token_budget, detective)
+
+    def resume_session(saved: SavedGame) -> GameSession:
+        if saved.scripted:
+            return GameSession.resume(engine, scripted_npc, None, saved)
+        return GameSession.resume(engine, provider, token_budget, saved)
+
     store = GameStore(
-        lambda detective: GameSession(engine, provider, token_budget, detective),
-        lambda saved: GameSession.resume(engine, provider, token_budget, saved),
+        new_session,
+        resume_session,
         saves=saves,
         max_games=max_games,
         idle_ttl_s=idle_ttl_s,
@@ -137,7 +150,7 @@ def create_app(
 
     @app.post("/api/games", status_code=201, dependencies=limit_new_games)
     def new_game(body: NewGame) -> GameOut:
-        game_id = store.create(body.difficulty, body.detective)
+        game_id = store.create(body.difficulty, body.detective, scripted=body.scripted)
         with store.use(game_id) as game:
             return game_view(game_id, game.difficulty, game.session)
 
