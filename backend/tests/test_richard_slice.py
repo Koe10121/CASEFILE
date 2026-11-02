@@ -244,3 +244,32 @@ def test_the_suspect_is_told_who_the_detective_is(engine: Engine) -> None:
     assert chosen.detective == "DI Rae Voss (they/them)"
     with pytest.raises(IllegalActionError):
         GameSession(engine, MockNpc(), detective="wizard")
+
+
+# ------------------------------------------------------------------ caught reactions (D52)
+
+
+def test_a_caught_suspect_answers_in_their_own_authored_words(engine: Engine) -> None:
+    npc = MeteredNpc()
+    session = GameSession(engine, npc)
+    session.talk_to(RICHARD)
+    session.search(LocationId("LOC_OFFICE"))
+    reply = session.show(EvidenceId("E07"))
+    on_caught = engine.index.lies[LieId("LIE_RICHARD_BILLIARD")].lie.on_caught
+    assert reply.dialogue == on_caught.reaction
+    assert npc.calls == 0
+    assert session.tokens_used == 0
+    last = session.transcripts[RICHARD][-1]
+    assert last.shown == engine.index.evidence[EvidenceId("E07")].name
+    assert last.suspect == on_caught.reaction
+
+
+def test_evidence_that_catches_nothing_gets_no_line(session: GameSession) -> None:
+    session.talk_to(RICHARD)
+    before = list(session.transcripts[RICHARD])
+    session.search(LocationId("LOC_OFFICE"))
+    session.show(EvidenceId("E07"))
+    again = session.show(EvidenceId("E07"))  # already caught: nothing new
+    assert again.dialogue == ""
+    assert again.events == ()
+    assert len(session.transcripts[RICHARD]) == len(before) + 1

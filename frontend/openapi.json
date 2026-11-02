@@ -1158,13 +1158,25 @@
           "demeanor": {
             "type": "string",
             "title": "Demeanor"
+          },
+          "shown": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shown"
           }
         },
         "type": "object",
         "required": [
           "detective",
           "suspect",
-          "demeanor"
+          "demeanor",
+          "shown"
         ],
         "title": "ExchangeOut"
       },

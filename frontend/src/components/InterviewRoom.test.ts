@@ -7,7 +7,9 @@ function room(overrides: Record<string, unknown> = {}) {
   return mount(InterviewRoom, {
     props: {
       name: "Richard Okafor",
-      exchanges: [{ detective: "", suspect: "I was in the billiard room.", demeanor: "hostile" }],
+      exchanges: [
+        { detective: "", suspect: "I was in the billiard room.", demeanor: "hostile", shown: null },
+      ],
       freshIndex: null,
       evidence: [
         {
@@ -22,6 +24,7 @@ function room(overrides: Record<string, unknown> = {}) {
       busy: false,
       maxChars: 20,
       over: false,
+      shrugged: false,
       ...overrides,
     },
   });
@@ -64,5 +67,16 @@ describe("InterviewRoom", () => {
   it("prints the whole line for screen readers, even while it types", () => {
     const wrapper = room({ freshIndex: 0 });
     expect(wrapper.get(".sr-only").text()).toBe("I was in the billiard room.");
+  });
+
+  it("marks shown evidence and a reaction-free show", () => {
+    const wrapper = room({
+      exchanges: [
+        { detective: "", suspect: "Fine.", demeanor: "defensive", shown: "Study door lock log" },
+      ],
+      shrugged: true,
+    });
+    expect(wrapper.text()).toContain("You show Study door lock log.");
+    expect(wrapper.text()).toContain("looks at it, and says nothing new");
   });
 });

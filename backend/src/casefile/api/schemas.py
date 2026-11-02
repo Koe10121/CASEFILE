@@ -172,9 +172,11 @@ class StatementOut(_Out):
 
 class ExchangeOut(_Out):
     detective: str
-    """Empty for the opening statement."""
+    """Empty for the opening statement and for shown evidence."""
     suspect: str
     demeanor: str
+    shown: str | None
+    """The evidence the detective put in front of them, by name (D52)."""
 
 
 class PointsOut(_Out):

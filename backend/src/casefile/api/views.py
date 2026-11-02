@@ -137,7 +137,9 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
         ),
         interviews={
             suspect: tuple(
-                ExchangeOut(detective=x.detective, suspect=x.suspect, demeanor=x.demeanor)
+                ExchangeOut(
+                    detective=x.detective, suspect=x.suspect, demeanor=x.demeanor, shown=x.shown
+                )
                 for x in exchanges
             )
             for suspect, exchanges in session.transcripts.items()

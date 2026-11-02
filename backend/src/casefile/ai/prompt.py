@@ -142,7 +142,11 @@ def conversation(history: Sequence[Exchange], player_text: str) -> list[tuple[Ro
     """
     turns: list[tuple[Role, str]] = []
     for ex in history:
-        turns.append(("user", detective_turn(ex.detective or FIRST_MEETING_CUE)))
+        if ex.shown is not None:
+            cue = f"(The detective shows you: {ex.shown}.)"
+        else:
+            cue = ex.detective or FIRST_MEETING_CUE
+        turns.append(("user", detective_turn(cue)))
         turns.append(("assistant", suspect_turn(ex.suspect, ex.demeanor)))
     turns.append(("user", detective_turn(player_text)))
     return turns
