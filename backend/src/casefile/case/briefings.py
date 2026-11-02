@@ -42,6 +42,9 @@ class OnCaught(CaseModel):
     fallback_lie: LieId | None
     """The next lie the suspect retreats to; ``null`` when the ladder ends (D04)."""
     reveal: tuple[FactId, ...]
+    reaction: NonEmptyStr
+    """What the suspect says the moment they're caught, word for word: the fallback lie
+    in their own voice, or the admission of what ``reveal`` gives up (D52)."""
 
 
 class Lie(CaseModel):

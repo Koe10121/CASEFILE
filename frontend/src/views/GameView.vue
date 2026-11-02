@@ -12,7 +12,9 @@ import { forgetGame } from "../game/lastGame";
 import { useGame } from "../game/useGame";
 
 const props = defineProps<{ id: string }>();
-const { cover, game, busy, error, lost, feed, fresh, suspect, load, act } = useGame(props.id);
+const { cover, game, busy, error, lost, feed, fresh, shrugged, suspect, load, act } = useGame(
+  props.id,
+);
 const accusing = ref(false);
 const left = computed(() => (game.value ? questionsLeft(game.value) : null));
 
@@ -151,6 +153,7 @@ watch(
           :busy="busy"
           :max-chars="cover.max_question_chars"
           :over="game.over"
+          :shrugged="shrugged"
           @ask="(text) => act('ask', { text })"
           @show="(e) => act('show', { evidence: e })"
         />

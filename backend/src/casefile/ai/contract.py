@@ -27,6 +27,8 @@ class Exchange(BaseModel):
     detective: str
     suspect: str
     demeanor: str
+    shown: str | None = None
+    """The evidence the detective showed instead of asking, by name (D52)."""
 
 
 class Usage(BaseModel):

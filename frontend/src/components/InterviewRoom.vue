@@ -12,6 +12,7 @@ const props = defineProps<{
   busy: boolean;
   maxChars: number;
   over: boolean;
+  shrugged: boolean;
 }>();
 
 const emit = defineEmits<{ ask: [text: string]; show: [evidence: string] }>();
@@ -61,7 +62,10 @@ watch(
 
     <ol ref="log" class="flex-1 space-y-5 overflow-y-auto px-5 py-4" aria-live="polite">
       <li v-for="(x, i) in exchanges" :key="i" class="space-y-2">
-        <p v-if="x.detective" class="ml-auto max-w-[85%] text-right text-sm text-paper-300">
+        <p v-if="x.shown" class="ml-auto max-w-[85%] text-right text-sm text-brass-400 italic">
+          You show {{ x.shown }}.
+        </p>
+        <p v-else-if="x.detective" class="ml-auto max-w-[85%] text-right text-sm text-paper-300">
           <span class="sr-only">You: </span>{{ x.detective }}
         </p>
         <div class="max-w-[90%]">
@@ -72,6 +76,9 @@ watch(
             “<TypedLine :text="x.suspect" :animate="i === freshIndex" />”
           </p>
         </div>
+      </li>
+      <li v-if="shrugged && !busy" class="text-sm text-paper-300 italic">
+        {{ name }} looks at it, and says nothing new.
       </li>
       <li v-if="busy" class="font-mono text-xs text-night-500">{{ name }} is thinking…</li>
     </ol>

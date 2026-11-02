@@ -80,7 +80,8 @@
           ],
           "on_caught": {
             "fallback_lie": "LIE_VICTORIA_LEFT_2150",
-            "reveal": []
+            "reveal": [],
+            "reaction": "Sorry. Yes. All right, he called me in. He shouted about the slides, about Monday. I left at about ten to ten, 21:50, and he was alive, Inspector."
           }
         },
         {
@@ -94,7 +95,8 @@
           ],
           "on_caught": {
             "fallback_lie": "LIE_VICTORIA_ANYONE",
-            "reveal": []
+            "reveal": [],
+            "reaction": "Then I misremembered the time. I was upset. And that routine could be anyone's. Lots of people can set up routines; Arthur gave half the house app access."
           }
         },
         {
@@ -110,7 +112,8 @@
             "fallback_lie": null,
             "reveal": [
               "F_ONLY_TWO_ADMINS"
-            ]
+            ],
+            "reaction": "Two. Yes. His and mine. I know how that looks, Inspector. I'd like a minute, please."
           }
         }
       ],
@@ -201,7 +204,8 @@
           ],
           "on_caught": {
             "fallback_lie": "LIE_RICHARD_NOTE",
-            "reveal": []
+            "reveal": [],
+            "reaction": "Look. Fine. I went to his office to leave him a note about the deal. Nothing more. Write that down."
           }
         },
         {
@@ -216,7 +220,8 @@
             "fallback_lie": null,
             "reveal": [
               "F_RICHARD_BOARD_PLAN"
-            ]
+            ],
+            "reaction": "All right. I copied the term sheet. I was taking Kestrel to the board without him. That's business, Inspector, not murder."
           }
         }
       ],
@@ -301,7 +306,8 @@
           ],
           "on_caught": {
             "fallback_lie": "LIE_ELEANOR_TOOK_NOTHING",
-            "reveal": []
+            "reveal": [],
+            "reaction": "Did I say I didn't go in? I went in to talk to him. He wasn't there, so I left. I took nothing."
           }
         },
         {
@@ -317,7 +323,8 @@
             "reveal": [
               "F_ELEANOR_TOOK_WILL",
               "F_ELEANOR_BURNT_WILL"
-            ]
+            ],
+            "reaction": "Yes. I took the will while he was down in the cellar, and I burned it in the drawing-room grate. Twenty-two years. Was I meant to wait for the new one to be read?"
           }
         }
       ],
@@ -408,7 +415,8 @@
             "reveal": [
               "F_THOMAS_DAUGHTER",
               "F_THOMAS_SAW_FIGURE"
-            ]
+            ],
+            "reaction": "I wasn't in the pantry, Inspector. My daughter was in labour. I went down to the gate, it's the only place with signal. And from the gate I saw someone in the study, in dark clothes, standing over his desk. I should have said. I'm sorry."
           }
         }
       ],

@@ -17,6 +17,8 @@ export function useGame(id: string) {
   const feed = ref<GameEvent[]>([]);
   /** The transcript entry that just arrived, which the interview types out. */
   const fresh = ref<{ suspect: string; index: number } | null>(null);
+  /** Set when shown evidence caught nothing, so the move doesn't look ignored. */
+  const shrugged = ref(false);
 
   const suspect = computed(() => {
     const current = game.value?.current_suspect;
@@ -46,8 +48,10 @@ export function useGame(id: string) {
 
   function act<V extends Verb>(verb: V, body: ActionBodies[V]): Promise<void> {
     return guarded(async () => {
+      shrugged.value = false;
       const result = await api.act(id, verb, body);
       game.value = result.game;
+      shrugged.value = verb === "show" && !result.line;
       if (result.events.length) feed.value = [...result.events].reverse().concat(feed.value);
       const line = result.line;
       if (line) {
@@ -57,7 +61,7 @@ export function useGame(id: string) {
     });
   }
 
-  return { cover, game, busy, error, lost, feed, fresh, suspect, load, act };
+  return { cover, game, busy, error, lost, feed, fresh, shrugged, suspect, load, act };
 }
 
 export type GameStore = ReturnType<typeof useGame>;

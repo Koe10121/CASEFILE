@@ -296,6 +296,8 @@ export interface components {
       suspect: string;
       /** Demeanor */
       demeanor: string;
+      /** Shown */
+      shown: string | null;
     };
     /** FactLearnedOut */
     FactLearnedOut: {

@@ -29,7 +29,7 @@ from casefile.engine.actions import (
 )
 from casefile.engine.briefing import SuspectBriefing, build_briefing
 from casefile.engine.engine import Engine, IllegalActionError, Outcome, RejectedReveal
-from casefile.engine.events import Event
+from casefile.engine.events import Event, LieCaught
 from casefile.engine.scoring import Accusation
 from casefile.engine.state import GameState
 
@@ -117,10 +117,26 @@ class GameSession:
     def search(self, location: LocationId) -> Outcome:
         return self._apply(SearchLocation(location=location))
 
-    def show(self, evidence: EvidenceId) -> Outcome:
-        if self.current_suspect is None:
+    def show(self, evidence: EvidenceId) -> Reply:
+        """Put evidence in front of the suspect. A catch gets the lie's authored reaction,
+        word for word and with no model call (D52); otherwise they say nothing new."""
+        suspect = self.current_suspect
+        if suspect is None:
             raise IllegalActionError("talk to a suspect first")
-        return self._apply(ShowEvidence(suspect=self.current_suspect, evidence=evidence))
+        outcome = self._apply(ShowEvidence(suspect=suspect, evidence=evidence))
+        ix = self.engine.index
+        reaction = " ".join(
+            ix.lies[e.lie].lie.on_caught.reaction
+            for e in outcome.events
+            if isinstance(e, LieCaught)
+        )
+        demeanor = build_briefing(self.engine, self.state, suspect, self.detective).demeanor
+        if reaction:
+            shown = ix.evidence[evidence].name
+            self.transcripts.setdefault(suspect, []).append(
+                Exchange(detective="", suspect=reaction, demeanor=demeanor, shown=shown)
+            )
+        return Reply(reaction, demeanor, (), (), (), (), (), outcome.events, Usage())
 
     def accuse(self, accusation: Accusation) -> Outcome:
         return self._apply(Accuse(accusation=accusation))

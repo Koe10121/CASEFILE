@@ -125,10 +125,12 @@ class Cli:
             self.say(f"  {eid}  {ev.name}: {ev.summary}")
 
     def show(self, arg: str) -> None:
-        outcome = self.s.show(EvidenceId(arg))
-        if not any(isinstance(e, LieCaught) for e in outcome.events):
+        reply = self.s.show(EvidenceId(arg))
+        if reply.dialogue:
+            self.say(f'  [{reply.demeanor}] "{reply.dialogue}"')
+        else:
             self.say("  They look at it, and say nothing new.")
-        self.report(outcome.events)
+        self.report(reply.events)
 
     def notebook(self, _: str) -> None:
         for entry in self.s.state.notebook:

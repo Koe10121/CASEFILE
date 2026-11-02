@@ -5,8 +5,13 @@ import { questionsLeft } from "./budget";
 
 const asked = (n: number) => ({
   S_RICHARD: [
-    { detective: "", suspect: "Opening.", demeanor: "calm" },
-    ...Array.from({ length: n }, () => ({ detective: "Q", suspect: "A", demeanor: "calm" })),
+    { detective: "", suspect: "Opening.", demeanor: "calm", shown: null },
+    ...Array.from({ length: n }, () => ({
+      detective: "Q",
+      suspect: "A",
+      demeanor: "calm",
+      shown: null,
+    })),
   ],
 });
 

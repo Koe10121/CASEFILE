@@ -54,10 +54,13 @@ IDs are permanent once published, because saves refer to them. The API only ever
   "hides": "F_RICHARD_OFFICE",
   "why": "Being in Arthur's office looks like theft on the night he died.",
   "contradicted_by": ["F_RICHARD_OFFICE"],
-  "on_caught": { "fallback_lie": "LIE_RICHARD_NOTE", "reveal": [] } }
+  "on_caught": {
+    "fallback_lie": "LIE_RICHARD_NOTE",
+    "reveal": [],
+    "reaction": "Look. Fine. I went to his office to leave him a note about the deal. Nothing more. Write that down." } }
 ```
 
-A lie is caught when the player shows that suspect evidence that establishes a fact in `contradicted_by`, after the lie has been told.
+A lie is caught when the player shows that suspect evidence that establishes a fact in `contradicted_by`, after the lie has been told. The suspect then says `reaction` word for word, with no model call (D52). It should put the fallback lie on record in the suspect's own voice, or say what `reveal` gives up.
 
 **Conditions**
 

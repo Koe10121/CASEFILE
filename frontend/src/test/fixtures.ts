@@ -48,7 +48,12 @@ export const cover: CaseCover = {
 
 /** Richard's first meeting: his opening statement and the lie it puts on record. */
 export function talkResult(): ActionResult {
-  const exchange = { detective: "", suspect: "I was in the billiard room.", demeanor: "hostile" };
+  const exchange = {
+    detective: "",
+    suspect: "I was in the billiard room.",
+    demeanor: "hostile",
+    shown: null,
+  };
   return {
     line: { suspect: "S_RICHARD", dialogue: exchange.suspect, demeanor: exchange.demeanor },
     events: [
