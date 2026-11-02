@@ -96,6 +96,8 @@ class GameSession:
         return Reply(opening, briefing.demeanor, (), (), (), (), (), outcome.events, Usage())
 
     def ask(self, text: str) -> Reply:
+        if self.state.is_over:
+            raise IllegalActionError("the accusation is final; the game is over")
         if self.current_suspect is None:
             raise IllegalActionError("talk to a suspect first")
         if not text.strip():

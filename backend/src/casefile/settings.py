@@ -36,3 +36,8 @@ class Settings(BaseSettings):
     """Hard cap on model tokens (input + output) per game session."""
     request_timeout_s: float = Field(default=120.0, gt=0)
     """Generous because a local model on a laptop can take a while per reply."""
+
+    max_games: int = Field(default=200, gt=0)
+    """Games the API server holds in memory at once. A new game past this is refused."""
+    game_idle_minutes: float = Field(default=120, gt=0)
+    """The API server forgets a game nobody has touched for this long."""

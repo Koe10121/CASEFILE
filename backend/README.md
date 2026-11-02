@@ -1,6 +1,6 @@
 # CASEFILE backend
 
-The game engine and the AI layer (later, the API). Python 3.12+, managed with [uv](https://docs.astral.sh/uv/).
+The game engine, the AI layer and the HTTP API for the web game. Python 3.12+, managed with [uv](https://docs.astral.sh/uv/).
 
 ## Play it
 
@@ -18,6 +18,40 @@ Type `help` for commands. Try `talk S_RICHARD`, `ask where were you tonight?`, `
 **Claude.** Copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY` (from console.anthropic.com). `.env` is git-ignored.
 
 Either way, a session stops after `CASEFILE_SESSION_TOKEN_BUDGET` model tokens, 400,000 by default. Every setting is listed in `.env.example`; `CASEFILE_AI=ollama` makes the local model the default.
+
+## Serve the API
+
+```bash
+uv run casefile-api                # http://127.0.0.1:8000, scripted suspects
+uv run casefile-api --ai ollama    # a local model plays them: free
+```
+
+Open http://127.0.0.1:8000/docs to try every endpoint in the browser. On Windows PowerShell, start the server in one window:
+
+```powershell
+cd C:\Users\User\CASEFILE\backend
+uv run casefile-api --ai ollama
+```
+
+and talk to it from a second window:
+
+```powershell
+$game = Invoke-RestMethod -Method Post http://127.0.0.1:8000/api/games -ContentType application/json -Body '{}'
+Invoke-RestMethod -Method Post "http://127.0.0.1:8000/api/games/$($game.id)/talk" -ContentType application/json -Body '{"suspect":"S_RICHARD"}'
+```
+
+| Endpoint | What it does |
+| --- | --- |
+| `GET /api/case` | The case's cover: title, intro, detective, people, accusation options, which AI is playing |
+| `POST /api/games` | Start a game (`{"difficulty": "easy" \| "normal" \| "hard"}`) |
+| `GET /api/games/{id}` | The game as the player sees it (resume after a reload) |
+| `POST /api/games/{id}/talk` | `{"suspect": "S_RICHARD"}`: start or resume an interview |
+| `POST /api/games/{id}/ask` | `{"text": "..."}`: ask the suspect you are talking to |
+| `POST /api/games/{id}/search` | `{"location": "LOC_STUDY"}` |
+| `POST /api/games/{id}/show` | `{"evidence": "E05"}`: show an item to the suspect you are talking to |
+| `POST /api/games/{id}/accuse` | `{"accusation": {"culprit", "motive", "method", "evidence": [...]}}`: final |
+
+Each action returns `line` (what the suspect said, if anything), `events` (what happened) and `game` (the whole player view). Errors are `{"detail": "..."}`: 404 unknown or expired game, 409 an illegal move or a request while the last one is still running, 422 a malformed request, 429 the token budget is spent, 502 the model didn't answer (nothing changed), 503 the server is full. Games live in memory for now, so restarting the server ends them.
 
 ## Score a model (eval harness)
 
@@ -76,6 +110,10 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 | `src/casefile/evals/` | The eval harness: scenario models, the per-line checks, the runner (`uv run casefile-eval`) |
 | `evals/blackwood_manor.json` | Eval scenarios for CASE #001 (author-only: they name what each lie hides) |
 | `src/casefile/cli.py` | The terminal game (`uv run casefile`) |
+| `src/casefile/api/app.py` | The FastAPI app: routes, error mapping, `uv run casefile-api` |
+| `src/casefile/api/schemas.py` | Request and response models: only what a player may see |
+| `src/casefile/api/views.py` | The spoiler boundary: game state to player view (D44) |
+| `src/casefile/api/store.py` | `GameStore`: games in memory, one lock per game, idle expiry (D46) |
 | `tests/test_blackwood_loads.py` | The real CASE #001 loads, round-trips losslessly and is immutable |
 | `tests/test_schema_rejects.py` | One test per schema rule, each breaking exactly one thing in the real case |
 | `tests/test_conditions.py` | Condition evaluation on a hand-built state |
@@ -87,6 +125,7 @@ CI runs the same four checks on every pull request that touches `backend/` or `c
 | `tests/test_grounding.py` | Grounding and the confession guard, on real lines from the first local eval |
 | `tests/test_evals.py` | The eval checks, the scenario file against the case, a clean mock baseline, and a bad reply tripping every check |
 | `tests/test_cli.py` | The terminal game wins CASE #001 in mock mode |
+| `tests/test_api.py` | CASE #001 won over HTTP; no response of a whole game (even with a leaking model) carries a secret or anything not yet discovered; every error code; the store's locks and expiry |
 | `tests/test_scoring.py` | Scoring cases, including the wrong culprit and two items from one group |
 
 ## How a question to a suspect works
