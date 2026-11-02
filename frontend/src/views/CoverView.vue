@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, shallowRef } from "vue";
+import { computed, onMounted, ref, shallowRef } from "vue";
 import { useRouter } from "vue-router";
 
 import { ApiError, api } from "../api/client";
@@ -11,6 +11,11 @@ const cover = shallowRef<CaseCover | null>(null);
 const error = ref<string | null>(null);
 const starting = ref(false);
 const difficulty = ref<Difficulty>("normal");
+const identityId = ref("");
+const identity = computed(() => {
+  const identities = cover.value?.detective.identities ?? [];
+  return identities.find((i) => i.id === identityId.value) ?? identities[0] ?? null;
+});
 const previous = lastGame();
 
 const difficulties: { id: Difficulty; label: string }[] = [
@@ -28,6 +33,7 @@ const players: Record<string, string> = {
 onMounted(async () => {
   try {
     cover.value = await api.getCase();
+    identityId.value = cover.value.detective.identities[0]?.id ?? "";
   } catch (e) {
     if (!(e instanceof ApiError)) throw e;
     error.value = e.message;
@@ -38,7 +44,7 @@ async function start(): Promise<void> {
   starting.value = true;
   error.value = null;
   try {
-    const game = await api.newGame(difficulty.value);
+    const game = await api.newGame(difficulty.value, identityId.value);
     rememberGame(game.id);
     await router.push({ name: "game", params: { id: game.id } });
   } catch (e) {
@@ -66,12 +72,39 @@ async function start(): Promise<void> {
       </p>
       <p class="mt-8 font-serif text-lg leading-relaxed whitespace-pre-line">{{ cover.intro }}</p>
 
-      <section class="mt-10 rounded-lg border border-night-700 bg-night-900 p-5">
+      <section v-if="identity" class="mt-10 rounded-lg border border-night-700 bg-night-900 p-5">
         <p class="font-mono text-xs tracking-widest text-brass-400 uppercase">
           You are {{ cover.detective.callsign }}
         </p>
-        <p class="mt-1 font-serif text-xl">{{ cover.detective.name }}</p>
-        <p class="mt-2 text-sm leading-relaxed text-paper-300">{{ cover.detective.bio }}</p>
+        <p class="mt-1 font-serif text-xl">
+          {{ identity.name }}
+          <span class="text-sm text-paper-300">({{ identity.pronouns }})</span>
+        </p>
+        <p class="mt-2 text-sm leading-relaxed text-paper-300">{{ identity.bio }}</p>
+        <fieldset v-if="cover.detective.identities.length > 1" class="mt-4">
+          <legend class="mb-2 text-xs text-paper-300">Play as</legend>
+          <div class="flex flex-wrap gap-2">
+            <label
+              v-for="i in cover.detective.identities"
+              :key="i.id"
+              class="cursor-pointer rounded border px-3 py-1.5 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brass-400"
+              :class="
+                identityId === i.id
+                  ? 'border-brass-400 bg-brass-400/10 text-paper-100'
+                  : 'border-night-700 text-paper-300 hover:border-night-500'
+              "
+            >
+              <input
+                v-model="identityId"
+                type="radio"
+                name="identity"
+                :value="i.id"
+                class="sr-only"
+              />
+              {{ i.label }}
+            </label>
+          </div>
+        </fieldset>
       </section>
 
       <section class="mt-10">

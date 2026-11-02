@@ -1,9 +1,18 @@
 import type { ActionResult, CaseCover, Game } from "../api/types";
 
+const rhea = {
+  id: "woman",
+  label: "Woman",
+  name: "DI Rhea Voss",
+  pronouns: "she/her",
+  bio: "Major Crimes.",
+};
+
 export function makeGame(overrides: Partial<Game> = {}): Game {
   return {
     id: "g1",
     difficulty: "normal",
+    detective: rhea,
     help: {
       contradictions: "side_by_side",
       hints: "none",
@@ -30,7 +39,7 @@ export const cover: CaseCover = {
   place: "Blackwood Manor",
   date: "2026-10-31",
   intro: "Halloween.",
-  detective: { name: "DI Rhea Voss", callsign: "Nightjar", bio: "Major Crimes." },
+  detective: { callsign: "Nightjar", identities: [rhea] },
   people: [{ id: "S_RICHARD", name: "Richard Okafor", age: 58, bio: "CFO.", role: "suspect" }],
   accusation: { culprits: ["S_RICHARD"], motives: [], methods: [], max_evidence: 4 },
   ai: "mock",

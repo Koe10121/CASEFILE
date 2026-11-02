@@ -29,6 +29,8 @@ class _In(BaseModel):
 
 class NewGame(_In):
     difficulty: Difficulty = "normal"
+    detective: str | None = None
+    """A detective identity ID from the case cover (D51). ``None``: the case default."""
 
 
 class TalkRequest(_In):
@@ -57,10 +59,20 @@ class AccuseRequest(_In):
 # ------------------------------------------------------------------ the case
 
 
-class DetectiveOut(_Out):
+class IdentityOut(_Out):
+    """One way to play the detective: same case, different name and pronouns (D51)."""
+
+    id: str
+    label: str
     name: str
-    callsign: str
+    pronouns: str
     bio: str
+
+
+class DetectiveOut(_Out):
+    callsign: str
+    identities: tuple[IdentityOut, ...]
+    """The first is the default."""
 
 
 class PersonOut(_Out):
@@ -194,6 +206,8 @@ class GameOut(_Out):
 
     id: str
     difficulty: Difficulty
+    detective: IdentityOut
+    """Who the player is in this game."""
     help: DifficultyProfile
     """What the chosen difficulty turns on in the UI (D11). The truth never changes."""
     over: bool

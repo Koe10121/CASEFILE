@@ -993,24 +993,22 @@
       },
       "DetectiveOut": {
         "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
           "callsign": {
             "type": "string",
             "title": "Callsign"
           },
-          "bio": {
-            "type": "string",
-            "title": "Bio"
+          "identities": {
+            "items": {
+              "$ref": "#/components/schemas/IdentityOut"
+            },
+            "type": "array",
+            "title": "Identities"
           }
         },
         "type": "object",
         "required": [
-          "name",
           "callsign",
-          "bio"
+          "identities"
         ],
         "title": "DetectiveOut"
       },
@@ -1215,6 +1213,9 @@
             ],
             "title": "Difficulty"
           },
+          "detective": {
+            "$ref": "#/components/schemas/IdentityOut"
+          },
           "help": {
             "$ref": "#/components/schemas/DifficultyProfile"
           },
@@ -1299,6 +1300,7 @@
         "required": [
           "id",
           "difficulty",
+          "detective",
           "help",
           "over",
           "current_suspect",
@@ -1326,6 +1328,40 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "IdentityOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "pronouns": {
+            "type": "string",
+            "title": "Pronouns"
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "name",
+          "pronouns",
+          "bio"
+        ],
+        "title": "IdentityOut",
+        "description": "One way to play the detective: same case, different name and pronouns (D51)."
       },
       "LieCaughtOut": {
         "properties": {
@@ -1490,6 +1526,17 @@
             ],
             "title": "Difficulty",
             "default": "normal"
+          },
+          "detective": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detective"
           }
         },
         "additionalProperties": false,

@@ -11,6 +11,7 @@ from casefile.case.base import TimeSpan
 from casefile.case.conditions import holds
 from casefile.case.ids import CharacterId, EvidenceId, LieId
 from casefile.case.rules import catches, evidence_establishes, location_accessible
+from casefile.case.world import Detective, DetectiveIdentity
 from casefile.engine.engine import Engine
 from casefile.engine.events import (
     AccusationScored,
@@ -36,6 +37,7 @@ from .schemas import (
     ExchangeOut,
     FactLearnedOut,
     GameOut,
+    IdentityOut,
     LieCaughtOut,
     LieOnRecordOut,
     LineOut,
@@ -63,7 +65,8 @@ def case_view(engine: Engine, ai: str) -> CaseOut:
         date=case.setting.date.isoformat(),
         intro=case.setting.intro,
         detective=DetectiveOut(
-            name=case.detective.name, callsign=case.detective.callsign, bio=case.detective.bio
+            callsign=case.detective.callsign,
+            identities=tuple(_identity(case.detective, i) for i in case.detective.identities),
         ),
         people=tuple(
             PersonOut(id=c.id, name=c.name, age=c.age, bio=c.public_bio, role=c.role)
@@ -89,6 +92,9 @@ def game_view(game_id: str, difficulty: Difficulty, session: GameSession) -> Gam
     return GameOut(
         id=game_id,
         difficulty=difficulty,
+        detective=_identity(
+            ix.bundle.case.detective, ix.bundle.case.detective.identity(session.detective)
+        ),
         help=help_,
         over=state.is_over,
         current_suspect=session.current_suspect,
@@ -194,6 +200,16 @@ def _evidence(engine: Engine, state: GameState) -> tuple[EvidenceOut, ...]:
         )
         for ev in ix.evidence.values()
         if ev.id in state.found_evidence
+    )
+
+
+def _identity(detective: Detective, identity: DetectiveIdentity) -> IdentityOut:
+    return IdentityOut(
+        id=identity.id,
+        label=identity.label,
+        name=detective.full_name(identity),
+        pronouns=identity.pronouns,
+        bio=identity.bio,
     )
 
 

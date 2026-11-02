@@ -282,7 +282,10 @@ class Clock:
 def make_store(blackwood: CaseBundle, clock: Clock, max_games: int = 2) -> GameStore:
     engine = Engine(blackwood)
     return GameStore(
-        lambda: GameSession(engine, MockNpc()), max_games=max_games, idle_ttl_s=60, clock=clock
+        lambda d: GameSession(engine, MockNpc(), detective=d),
+        max_games=max_games,
+        idle_ttl_s=60,
+        clock=clock,
     )
 
 
@@ -335,3 +338,23 @@ def test_easy_flags_a_claim_that_held_evidence_disproves(
     caught = {s["lie"]: s for s in game["statements"]}["LIE_VICTORIA_NO_CONTACT"]
     assert caught["caught"] is True
     assert caught["flagged"] is False  # a caught lie needs no flag
+
+
+def test_the_player_chooses_who_the_detective_is(client: TestClient, blackwood: CaseBundle) -> None:
+    cover = ok(client.get("/api/case"))["detective"]
+    assert [i["id"] for i in cover["identities"]] == ["woman", "man", "nonbinary"]
+
+    default = ok(client.get(f"/api/games/{new_game(client)}"))
+    assert default["detective"]["name"] == "DI Rhea Voss"
+
+    response = client.post("/api/games", json={"detective": "man"})
+    assert response.status_code == 201
+    assert response.json()["detective"] == {
+        "id": "man",
+        "label": "Man",
+        "name": "DI Rhys Voss",
+        "pronouns": "he/him",
+        "bio": blackwood.case.detective.identity("man").bio,
+    }
+    unknown = client.post("/api/games", json={"detective": "wizard"})
+    assert unknown.status_code == 409

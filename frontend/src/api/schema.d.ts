@@ -228,12 +228,10 @@ export interface components {
     };
     /** DetectiveOut */
     DetectiveOut: {
-      /** Name */
-      name: string;
       /** Callsign */
       callsign: string;
-      /** Bio */
-      bio: string;
+      /** Identities */
+      identities: components["schemas"]["IdentityOut"][];
     };
     /**
      * DifficultyProfile
@@ -325,6 +323,7 @@ export interface components {
        * @enum {string}
        */
       difficulty: "easy" | "normal" | "hard";
+      detective: components["schemas"]["IdentityOut"];
       help: components["schemas"]["DifficultyProfile"];
       /** Over */
       over: boolean;
@@ -351,6 +350,22 @@ export interface components {
     HTTPValidationError: {
       /** Detail */
       detail?: components["schemas"]["ValidationError"][];
+    };
+    /**
+     * IdentityOut
+     * @description One way to play the detective: same case, different name and pronouns (D51).
+     */
+    IdentityOut: {
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+      /** Name */
+      name: string;
+      /** Pronouns */
+      pronouns: string;
+      /** Bio */
+      bio: string;
     };
     /** LieCaughtOut */
     LieCaughtOut: {
@@ -427,6 +442,8 @@ export interface components {
        * @enum {string}
        */
       difficulty: "easy" | "normal" | "hard";
+      /** Detective */
+      detective?: string | null;
     };
     /** NotebookEntryOut */
     NotebookEntryOut: {

@@ -68,6 +68,8 @@ class GameSession:
     provider: NpcProvider
     token_budget: int | None = None
     """Model tokens (input + output) this session may spend. ``None``: no cap (mock mode)."""
+    detective: str | None = None
+    """The detective identity the player chose (D51). ``None``: the case default."""
     tokens_used: int = field(default=0, init=False)
     state: GameState = field(init=False)
     log: list[LogEntry] = field(default_factory=list, init=False)
@@ -75,6 +77,10 @@ class GameSession:
     current_suspect: CharacterId | None = field(default=None, init=False)
 
     def __post_init__(self) -> None:
+        try:
+            self.engine.index.bundle.case.detective.identity(self.detective)
+        except KeyError:
+            raise IllegalActionError(f"there is no detective identity {self.detective!r}") from None
         self.state = self.engine.new_game()
 
     # ------------------------------------------------------------ player actions
@@ -84,7 +90,7 @@ class GameSession:
         first_meeting = suspect not in self.state.talked_to
         outcome = self._apply(TalkTo(suspect=suspect))
         self.current_suspect = suspect
-        briefing = build_briefing(self.engine, self.state, suspect)
+        briefing = build_briefing(self.engine, self.state, suspect, self.detective)
         if not first_meeting:
             return Reply("", briefing.demeanor, (), (), (), (), (), outcome.events, Usage())
         # The opening statement is authored, not generated: it must put the suspect's
@@ -128,7 +134,7 @@ class GameSession:
         return outcome
 
     def _ask(self, suspect: CharacterId, text: str) -> Reply:
-        briefing = build_briefing(self.engine, self.state, suspect)
+        briefing = build_briefing(self.engine, self.state, suspect, self.detective)
         history = self.transcripts.setdefault(suspect, [])
         turn = self.provider.respond(briefing, tuple(history), text)  # may raise ProviderError
         self.tokens_used += turn.usage.total_tokens

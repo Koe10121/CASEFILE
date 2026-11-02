@@ -53,9 +53,14 @@ watch(
     <header
       class="flex flex-wrap items-center justify-between gap-3 border-b border-night-700 pb-3"
     >
-      <RouterLink to="/" class="font-serif text-lg hover:text-brass-400">
-        {{ cover?.title ?? "CASEFILE" }}
-      </RouterLink>
+      <div>
+        <RouterLink to="/" class="font-serif text-lg hover:text-brass-400">
+          {{ cover?.title ?? "CASEFILE" }}
+        </RouterLink>
+        <p v-if="game && cover" class="font-mono text-xs text-night-500">
+          {{ game.detective.name }} · {{ cover.detective.callsign }}
+        </p>
+      </div>
       <div class="flex items-center gap-4">
         <p
           v-if="left !== null"

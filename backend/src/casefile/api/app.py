@@ -58,7 +58,7 @@ def create_app(
 ) -> FastAPI:
     app = FastAPI(title="CASEFILE", version="0.1.0", responses=_ERRORS)
     store = GameStore(
-        lambda: GameSession(engine, provider, token_budget),
+        lambda detective: GameSession(engine, provider, token_budget, detective),
         max_games=max_games,
         idle_ttl_s=idle_ttl_s,
     )
@@ -81,7 +81,7 @@ def create_app(
 
     @app.post("/api/games", status_code=201)
     def new_game(body: NewGame) -> GameOut:
-        game_id = store.create(body.difficulty)
+        game_id = store.create(body.difficulty, body.detective)
         with store.use(game_id) as game:
             return game_view(game_id, game.difficulty, game.session)
 
