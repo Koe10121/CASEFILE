@@ -14,14 +14,15 @@ import argparse
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast, get_args
+from typing import Annotated, cast, get_args
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 
 from casefile.ai.contract import ProviderError
 from casefile.ai.factory import make_provider, setup_problem
+from casefile.ai.player_key import MAX_KEY_CHARS, MissingKeyError, PlayerKeyClaude, player_key
 from casefile.ai.provider import NpcProvider
 from casefile.case.ids import CharacterId
 from casefile.case.validation import load_valid_case
@@ -51,7 +52,7 @@ from .views import case_view, difficulty_help, events_view, game_view, line_view
 from .web import WebGame
 
 _ERRORS: dict[int | str, dict[str, object]] = {
-    code: {"model": ErrorOut} for code in (404, 409, 429, 502, 503)
+    code: {"model": ErrorOut} for code in (401, 404, 409, 429, 502, 503)
 }
 
 
@@ -75,6 +76,7 @@ def create_app(
     portraits: Portraits | None = None,
     limits: Limits | None = None,
     web: Path | None = None,
+    player_keys: bool = False,
 ) -> FastAPI:
     app = FastAPI(title="CASEFILE", version="0.1.0", responses=_ERRORS)
     store = GameStore(
@@ -85,7 +87,7 @@ def create_app(
         idle_ttl_s=idle_ttl_s,
     )
     faces = portraits or {}
-    case = case_view(engine, ai, faces)
+    case = case_view(engine, ai, faces, player_keys=player_keys)
 
     def action(
         game_id: str, game: StoredGame, outcome: Reply | Outcome, *, caught: bool = False
@@ -150,8 +152,14 @@ def create_app(
             return action(game_id, game, game.session.talk_to(body.suspect))
 
     @app.post("/api/games/{game_id}/ask", dependencies=limit_actions)
-    def ask(game_id: str, body: AskRequest) -> ActionOut:
-        with store.use(game_id) as game:
+    def ask(
+        game_id: str,
+        body: AskRequest,
+        x_claude_key: Annotated[str | None, Header(max_length=MAX_KEY_CHARS)] = None,
+    ) -> ActionOut:
+        """``X-Claude-Key`` is the player's Anthropic API key, needed only when the cover
+        says ``player_keys`` (D58). It is used for this one call and never stored."""
+        with store.use(game_id) as game, player_key(x_claude_key if player_keys else None):
             return action(game_id, game, game.session.ask(body.text))
 
     @app.post("/api/games/{game_id}/search", dependencies=limit_actions)
@@ -201,8 +209,14 @@ def create_app(
     def budget(_: Request, exc: BudgetExhaustedError) -> JSONResponse:
         return error(429, str(exc))
 
+    @app.exception_handler(MissingKeyError)
+    def missing_key(_: Request, __: MissingKeyError) -> JSONResponse:
+        return error(401, "this server plays the suspects on your own Claude API key; add it")
+
     @app.exception_handler(ProviderError)
     def provider_failed(_: Request, exc: ProviderError) -> JSONResponse:
+        if exc.kind == "auth":
+            return error(401, "Anthropic refused your Claude API key; check it and try again")
         # The kind is for logs; the player only needs to know nothing changed.
         return error(502, f"the suspect didn't answer ({exc.kind}); nothing changed, try again")
 
@@ -243,10 +257,16 @@ def main(argv: list[str] | None = None) -> None:
         args.ai = "mock"  # the schema is the same whoever plays the suspects
     if args.web is not None and not (args.web / "index.html").is_file():
         parser.error(f"--web {args.web}: no index.html there; run `npm run build` in frontend/")
-    problem = setup_problem(args.ai, settings)
-    if problem is not None:
-        parser.error(problem)
-    provider, budget = make_provider(args.ai, settings)
+    provider: NpcProvider
+    budget: int | None
+    if settings.player_keys and args.openapi is None:
+        args.ai = "claude"
+        provider, budget = PlayerKeyClaude(settings), settings.session_token_budget
+    else:
+        problem = setup_problem(args.ai, settings)
+        if problem is not None:
+            parser.error(problem)
+        provider, budget = make_provider(args.ai, settings)
     engine = Engine(load_valid_case(DEFAULT_CASE))
     saves = None
     if args.openapi is None and settings.save_file is not None:
@@ -269,6 +289,7 @@ def main(argv: list[str] | None = None) -> None:
             actions=RateLimiter(settings.moves_per_minute, 60),
         ),
         web=args.web,
+        player_keys=settings.player_keys and args.openapi is None,
     )
     if args.openapi is not None:
         # Written as UTF-8 by Python, not piped: PowerShell 5 redirects as UTF-16.

@@ -10,9 +10,11 @@ services:
     healthCheckPath: /api/case
     autoDeploy: true
     envVars:
-      # Scripted suspects until players can bring their own Claude key (next step).
-      - key: CASEFILE_AI
-        value: mock
+      # Claude plays the suspects on each player's own API key (D58). The server needs
+      # no key of its own and pays for nothing. For a free demo with scripted suspects,
+      # set this to "false" and CASEFILE_AI to "mock" in the Environment tab instead.
+      - key: CASEFILE_PLAYER_KEYS
+        value: "true"
       # Render's free disk is wiped on every deploy and restart, so saved games last
       # until then. Fine for a demo; a paid disk would keep them.
       - key: CASEFILE_SAVE_FILE

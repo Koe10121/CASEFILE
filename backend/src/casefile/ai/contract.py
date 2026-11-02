@@ -58,7 +58,8 @@ class NpcTurn(BaseModel):
 class ProviderError(Exception):
     """The provider could not produce a valid reply. Nothing in the game changed.
 
-    ``kind`` is for logs and evals: ``refusal``, ``malformed``, ``truncated`` or ``api``.
+    ``kind`` is for logs and evals: ``refusal``, ``malformed``, ``truncated``, ``api``, or
+    ``auth`` (the API refused the key).
     """
 
     def __init__(self, kind: str, detail: str) -> None:

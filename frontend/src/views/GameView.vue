@@ -7,15 +7,28 @@ import CaseSidebar from "../components/CaseSidebar.vue";
 import CaseTabs from "../components/CaseTabs.vue";
 import HintBox from "../components/HintBox.vue";
 import InterviewRoom from "../components/InterviewRoom.vue";
+import PlayerKeyForm from "../components/PlayerKeyForm.vue";
 import ResultsPanel from "../components/ResultsPanel.vue";
 import { questionsLeft } from "../game/budget";
 import { forgetGame } from "../game/lastGame";
 import { useGame } from "../game/useGame";
 
 const props = defineProps<{ id: string }>();
-const { cover, game, busy, error, lost, feed, fresh, shrugged, suspect, load, act } = useGame(
-  props.id,
-);
+const {
+  cover,
+  game,
+  busy,
+  error,
+  lost,
+  needsKey,
+  feed,
+  fresh,
+  shrugged,
+  suspect,
+  load,
+  act,
+  keyChanged,
+} = useGame(props.id);
 const accusing = ref(false);
 const left = computed(() => (game.value ? questionsLeft(game.value) : null));
 
@@ -107,6 +120,12 @@ watch(
       >
         {{ error }}
       </p>
+      <PlayerKeyForm
+        v-if="needsKey && cover.player_keys"
+        class="mt-3"
+        refused
+        @saved="keyChanged"
+      />
 
       <template v-if="game.result">
         <ResultsPanel :result="game.result" />

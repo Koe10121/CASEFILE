@@ -109,6 +109,9 @@ class CaseOut(_Out):
     accusation: AccusationOptionsOut
     ai: str
     """Who plays the suspects on this server: ``mock``, ``ollama`` or ``claude``."""
+    player_keys: bool
+    """Claude plays on each player's own API key, sent as ``X-Claude-Key`` with every
+    question (D58). The browser should ask for one before the game."""
     max_question_chars: int
     """The longest question the server accepts, so the UI can count down to it."""
     portraits: dict[CharacterId, tuple[Expression, ...]]

@@ -101,7 +101,11 @@ export interface paths {
     };
     get?: never;
     put?: never;
-    /** Ask */
+    /**
+     * Ask
+     * @description ``X-Claude-Key`` is the player's Anthropic API key, needed only when the cover
+     *     says ``player_keys`` (D58). It is used for this one call and never stored.
+     */
     post: operations["ask_api_games__game_id__ask_post"];
     delete?: never;
     options?: never;
@@ -264,6 +268,8 @@ export interface components {
       accusation: components["schemas"]["AccusationOptionsOut"];
       /** Ai */
       ai: string;
+      /** Player Keys */
+      player_keys: boolean;
       /** Max Question Chars */
       max_question_chars: number;
       /** Portraits */
@@ -683,6 +689,15 @@ export interface operations {
         };
         content?: never;
       };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
       /** @description Not Found */
       404: {
         headers: {
@@ -757,6 +772,15 @@ export interface operations {
           "application/json": components["schemas"]["CaseOut"];
         };
       };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
       /** @description Not Found */
       404: {
         headers: {
@@ -824,6 +848,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["GameOut"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
         };
       };
       /** @description Not Found */
@@ -900,6 +933,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["GameOut"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
         };
       };
       /** @description Not Found */
@@ -982,6 +1024,15 @@ export interface operations {
           "application/json": components["schemas"]["ActionOut"];
         };
       };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
       /** @description Not Found */
       404: {
         headers: {
@@ -1041,7 +1092,9 @@ export interface operations {
   ask_api_games__game_id__ask_post: {
     parameters: {
       query?: never;
-      header?: never;
+      header?: {
+        "x-claude-key"?: string | null;
+      };
       path: {
         game_id: string;
       };
@@ -1060,6 +1113,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ActionOut"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
         };
       };
       /** @description Not Found */
@@ -1142,6 +1204,15 @@ export interface operations {
           "application/json": components["schemas"]["ActionOut"];
         };
       };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
       /** @description Not Found */
       404: {
         headers: {
@@ -1220,6 +1291,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ActionOut"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
         };
       };
       /** @description Not Found */
@@ -1302,6 +1382,15 @@ export interface operations {
           "application/json": components["schemas"]["ActionOut"];
         };
       };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
+        };
+      };
       /** @description Not Found */
       404: {
         headers: {
@@ -1376,6 +1465,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ActionOut"];
+        };
+      };
+      /** @description Unauthorized */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorOut"];
         };
       };
       /** @description Not Found */

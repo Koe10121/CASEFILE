@@ -4,8 +4,10 @@ import { useRouter } from "vue-router";
 
 import { ApiError, api } from "../api/client";
 import type { CaseCover, Difficulty } from "../api/types";
+import PlayerKeyForm from "../components/PlayerKeyForm.vue";
 import SuspectPortrait from "../components/SuspectPortrait.vue";
 import { lastGame, rememberGame } from "../game/lastGame";
+import { playerKey } from "../game/playerKey";
 
 const router = useRouter();
 const cover = shallowRef<CaseCover | null>(null);
@@ -18,6 +20,8 @@ const identity = computed(() => {
   return identities.find((i) => i.id === identityId.value) ?? identities[0] ?? null;
 });
 const previous = lastGame();
+const hasKey = ref(playerKey() !== null);
+const needsKey = computed(() => cover.value?.player_keys === true && !hasKey.value);
 
 const difficulties: { id: Difficulty; label: string }[] = [
   { id: "easy", label: "Easy" },
@@ -172,11 +176,13 @@ async function start(): Promise<void> {
         </div>
       </fieldset>
 
+      <PlayerKeyForm v-if="cover.player_keys" class="mt-10" @saved="hasKey = true" />
+
       <div class="mt-10 flex flex-wrap items-center gap-3">
         <button
           type="button"
           class="rounded bg-alarm-500 px-6 py-3 font-medium text-paper-100 transition-colors hover:bg-alarm-400 disabled:opacity-60"
-          :disabled="starting"
+          :disabled="starting || needsKey"
           @click="start"
         >
           {{ starting ? "Opening the file…" : "Take the case" }}

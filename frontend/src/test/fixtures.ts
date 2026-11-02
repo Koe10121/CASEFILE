@@ -44,6 +44,7 @@ export const cover: CaseCover = {
   people: [{ id: "S_RICHARD", name: "Richard Okafor", age: 58, bio: "CFO.", role: "suspect" }],
   accusation: { culprits: ["S_RICHARD"], motives: [], methods: [], max_evidence: 4 },
   ai: "mock",
+  player_keys: false,
   max_question_chars: 500,
   portraits: {},
 };

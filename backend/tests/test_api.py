@@ -53,6 +53,7 @@ def make_client(
     portraits: Portraits | None = None,
     limits: Limits | None = None,
     web: Path | None = None,
+    player_keys: bool = False,
 ) -> TestClient:
     app = create_app(
         Engine(blackwood),
@@ -65,6 +66,7 @@ def make_client(
         portraits=portraits,
         limits=limits,
         web=web,
+        player_keys=player_keys,
     )
     return TestClient(app)
 

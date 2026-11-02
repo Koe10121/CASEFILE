@@ -62,6 +62,10 @@ class Settings(BaseSettings):
     behind_proxy: bool = False
     """Set on a host that puts a proxy in front (Render, Fly, Hugging Face), so the
     rate limits see the visitor's address instead of the proxy's."""
+    player_keys: bool = False
+    """Claude plays the suspects on each player's own API key, sent from the browser with
+    each question and never stored (D58). For the public server: players pay for their
+    own game, and the server needs no key of its own. Implies ``ai=claude``."""
     web_dir: Path | None = None
     """Serve the built web game from here too (``--web``). The Docker image sets it."""
 
